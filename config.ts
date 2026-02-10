@@ -1,0 +1,39 @@
+
+/**
+ * Application Configuration
+ * You can easily edit API endpoints and other settings here.
+ */
+export const APP_CONFIG = {
+    // Google Apps Script API endpoints
+    API_ENDPOINTS: {
+        TEACHER: 'https://script.google.com/macros/s/AKfycbwgrdxwKWHT9HwG4JIa5nkY1BmZTYcLAd94MGaelrhCdFvaF-lSnNmIO9EnQQOPVHkO/exec',
+        SUBJECT: 'https://script.google.com/macros/s/AKfycby-zYMWd2uxaSvDwHp336uoz2w0r4UfwD69_Gape9FXOzg4B__L8Jc-fXxq59Y9UQdrRQ/exec',
+        AVAILABILITY: 'https://script.google.com/macros/s/AKfycbxmTzvJIW1GIwwQij9SS6gUr3qpDBt5w0K81TllvfEG569wTSf2DbS07bJRweiHZAAQ/exec',
+        ALLOCATION: 'https://script.google.com/macros/s/AKfycbwuzCTP0cK91jWUqHhvypJQhbw-X1xFvkCQIWmucsVcJaU3GccGIY8VEV-J02-beYx1qw/exec',
+        SESSION: 'https://script.google.com/macros/s/AKfycbyCnSkEs7SrhBl7xXPVHDOutYaDSx_4-zJvXnai5cwu52nAJqV9E-M8cKDGQVIu7p3d_A/exec',
+        STUDENT_LOG: 'https://script.google.com/macros/s/AKfycbw0OBau3M7WsU14zGTiKpsTfbJgajnGVyZRvtb-CcFDU8uJZPPwu3JSPgMVlMgDs2gW/exec',
+        STUDENT: 'https://script.google.com/macros/s/AKfycbwno4xusBgka6B6-8vvqdV79K-xtEG1MUCQ-B-d861SWwkxiWvVuXRIeI33e89e2QoUCQ/exec',
+    },
+
+    // Google Form URLs for various requests
+    GOOGLE_FORMS: {
+        REFER_FRIEND: 'https://docs.google.com/forms/d/e/1FAIpQLSf-placeholder-referral/viewform',
+        COMPLAINT: 'https://docs.google.com/forms/d/e/1FAIpQLSd-placeholder-complaint/viewform',
+        FEEDBACK: 'https://docs.google.com/forms/d/e/1FAIpQLSd-placeholder-feedback/viewform',
+        UPLOAD_FILES: 'https://docs.google.com/forms/d/e/1FAIpQLSd-placeholder-files/viewform'
+    },
+
+    // AI Service Settings (Gemini)
+    AI_SETTINGS: {
+        GEMINI_MODEL: 'gemini-3-flash-preview',
+        // In production, use environment variables. For local dev, you can paste the key here or in .env.local
+        API_KEY: (import.meta as any).env?.VITE_GEMINI_API_KEY || 'PLACEHOLDER_API_KEY'
+    },
+
+    // Portal Branding & Display Settings
+    PORTAL_INFO: {
+        NAME: 'TRP',
+        FULL_NAME: 'Teacher Reporting Portal',
+        TAGLINE: 'Teacher Suite'
+    }
+};

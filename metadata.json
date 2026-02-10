@@ -1,0 +1,5 @@
+{
+  "name": "TRP - Teacher Sessions Tracking System",
+  "description": "A comprehensive teacher dashboard for managing upcoming classes, tracking student attendance, marking listening rates, and managing availability and subjects.",
+  "requestFramePermissions": []
+}
