@@ -210,7 +210,7 @@ const App: React.FC = () => {
           <div className="text-center mb-12">
             <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-navy/30 mx-auto mb-6 transform hover:rotate-6 transition-transform border border-slate-100 overflow-hidden">
               <img
-                src="/assets/brand-logo.png"
+                src="/assets/brand-logo.svg"
                 alt="Logo"
                 className="w-full h-full object-cover"
                 onError={(e) => {

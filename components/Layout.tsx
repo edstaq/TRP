@@ -26,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
         <div className="mb-10 flex items-center gap-3 px-2">
           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-brand-navy/10 overflow-hidden border border-slate-100">
             <img
-              src="/assets/brand-logo.png"
+              src="/assets/brand-logo.svg"
               alt="Logo"
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -73,7 +73,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 overflow-hidden">
             <img
-              src="/assets/brand-logo.png"
+              src="/assets/brand-logo.svg"
               alt="Logo"
               className="w-full h-full object-cover"
               onError={(e) => {
