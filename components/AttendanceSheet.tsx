@@ -2,9 +2,10 @@
 // Fixed missing History icon import to resolve JSX element type error.
 import React, { useState, useEffect, useRef } from 'react';
 import { Session, Student, SessionStatus } from '../types';
-import { Star, CheckCircle, XCircle, ChevronLeft, RefreshCcw, UserCheck, MessageSquarePlus, Users, History, Loader2, BookOpen, Clock } from 'lucide-react';
+import { Star, CheckCircle, XCircle, ChevronLeft, RefreshCcw, UserCheck, MessageSquarePlus, Users, History, Loader2, BookOpen, Clock, FileUp, StickyNote } from 'lucide-react';
 import { studentLogService } from '../services/studentLogService';
 import { sessionService } from '../services/sessionService';
+import { GOOGLE_FORMS } from '../constants';
 
 interface AttendanceSheetProps {
   session: Session;
@@ -268,6 +269,41 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
               placeholder="What did you teach today? (e.g., Introduction to Photosynthesis, Quadratic Equations Part 2)"
               className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-brand-navy/20 transition-all min-h-[80px] resize-none disabled:opacity-60"
             />
+          </section>
+
+          {/* Session Attachments Section */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Upload Proof */}
+            <a
+              href={GOOGLE_FORMS.UPLOAD_FILES}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:border-brand-navy/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]"
+            >
+              <div className="w-12 h-12 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                <FileUp size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-700 leading-tight group-hover:text-brand-navy transition-colors">Session Proof</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Limit 1 File</p>
+              </div>
+            </a>
+
+            {/* Upload Materials */}
+            <a
+              href={GOOGLE_FORMS.UPLOAD_FILES}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:border-brand-navy/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]"
+            >
+              <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                <StickyNote size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-700 leading-tight group-hover:text-brand-navy transition-colors">Learning Material</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Helping Documents</p>
+              </div>
+            </a>
           </section>
 
           {/* Bulk Action & Stats Container */}
