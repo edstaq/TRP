@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Calendar, History, User, LogOut, BookOpen, Layers } from 'lucide-react';
+import { LayoutDashboard, Calendar, History, User, LogOut, Layers } from 'lucide-react';
 import { APP_CONFIG } from '../config';
 
 interface LayoutProps {

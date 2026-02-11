@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { teacherService, TeacherAPIData } from './services/teacherService';
+import { teacherService } from './services/teacherService';
 import Layout from './components/Layout';
 import SessionCard from './components/SessionCard';
 import AttendanceSheet from './components/AttendanceSheet';
@@ -11,10 +11,10 @@ import { sessionService } from './services/sessionService';
 import { MOCK_SESSIONS } from './constants';
 import { Session, SessionStatus, TeacherProfile, Allocation } from './types';
 import { allocationService } from './services/allocationService';
-import { LogIn, BookOpen, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
+import { LogIn, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
 import { APP_CONFIG } from './config';
 import LoadingPopup from './components/LoadingPopup';
-import GoogleDriveUploadTest from './components/GoogleDriveUploadTest';
+
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -508,8 +508,7 @@ const App: React.FC = () => {
           />
         );
 
-      case 'upload':
-        return <GoogleDriveUploadTest />;
+
 
       default:
         return null;
