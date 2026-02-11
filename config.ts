@@ -23,12 +23,7 @@ export const APP_CONFIG = {
         UPLOAD_FILES: 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=dialog'
     },
 
-    // AI Service Settings (Gemini)
-    AI_SETTINGS: {
-        GEMINI_MODEL: 'gemini-3-flash-preview',
-        // In production, use environment variables. For local dev, you can paste the key here or in .env.local
-        API_KEY: (import.meta as any).env?.VITE_GEMINI_API_KEY || 'PLACEHOLDER_API_KEY'
-    },
+
 
     // Portal Branding & Display Settings
     PORTAL_INFO: {

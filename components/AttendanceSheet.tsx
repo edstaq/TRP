@@ -2,7 +2,7 @@
 // Fixed missing History icon import to resolve JSX element type error.
 import React, { useState, useEffect, useRef } from 'react';
 import { Session, Student, SessionStatus } from '../types';
-import { Star, CheckCircle, XCircle, ChevronLeft, RefreshCcw, UserCheck, MessageSquarePlus, Users, History, Loader2, BookOpen, Clock, FileUp, StickyNote } from 'lucide-react';
+import { Star, CheckCircle, XCircle, ChevronLeft, RefreshCcw, UserCheck, MessageSquarePlus, Users, History, Loader2, BookOpen, Clock, FileUp, StickyNote, FileText, Download, ChevronDown, Key, Check } from 'lucide-react';
 import { studentLogService } from '../services/studentLogService';
 import { sessionService } from '../services/sessionService';
 import { GOOGLE_FORMS } from '../constants';
@@ -21,6 +21,9 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
   const [topicCovered, setTopicCovered] = useState(session.topicCovered || '');
   const [startedTime, setStartedTime] = useState(session.startedTime || '');
   const [endedTime, setEndedTime] = useState(session.endedTime || '');
+  const [showFiles, setShowFiles] = useState(false);
+  const [isRefreshingFiles, setIsRefreshingFiles] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -88,6 +91,22 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
     } : s));
   };
 
+  const handleRefreshFiles = async () => {
+    setIsRefreshingFiles(true);
+    try {
+      // Fetch fresh session data to get updated files
+      const sessions = await sessionService.fetchByTeacherId(session.id.split('_')[0]); // Extract teacher ID
+      const updatedSession = sessions.find(s => s.sessionId === session.sessionId);
+      if (updatedSession) {
+        onUpdate({ ...session, files: updatedSession.files });
+      }
+    } catch (error) {
+      console.error('Failed to refresh files:', error);
+    } finally {
+      setIsRefreshingFiles(false);
+    }
+  };
+
   const handleSave = async () => {
     if (isCompleted) {
       onBack();
@@ -110,6 +129,13 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
 
     if (unratedStudents.length > 0) {
       alert(`Please provide a rating for all present students. Missing ratings for: ${unratedStudents.map(s => s.name).join(', ')}`);
+      return;
+    }
+
+    // Check for Session Proof
+    const hasSessionProof = session.files.some(f => f.type === 'Session Proof');
+    if (!hasSessionProof) {
+      alert('Please upload a Session Proof before saving the record.');
       return;
     }
 
@@ -164,15 +190,32 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
       <div className="min-h-full flex flex-col md:bg-white md:rounded-3xl md:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] md:border md:border-slate-100">
 
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-100 p-5 flex items-center justify-between">
+        <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={onBack} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-brand-navy hover:text-white transition-all">
               <ChevronLeft size={20} />
             </button>
             <div>
-              <h2 className="text-lg font-black text-brand-navy leading-none mb-1">
-                {isCompleted ? 'Historical Report' : 'Session Dashboard'}
-              </h2>
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-lg font-black text-brand-navy leading-none">
+                  {isCompleted ? 'Historical Report' : 'Session Dashboard'}
+                </h2>
+                {/* Session ID Chip - Matching SessionCard Design */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(session.sessionId);
+                    setCopiedId(true);
+                    setTimeout(() => setCopiedId(false), 2000);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-slate-50 text-green-600 rounded-lg transition-all active:scale-95 hover:bg-green-50 group/copy ${!isCompleted ? 'animate-pulse' : ''}`}
+                  title="Click to copy Session ID"
+                >
+                  {copiedId ? <Check size={11} /> : <Key size={11} className="text-green-600/40" />}
+                  <span className="text-[9px] font-black font-mono uppercase tracking-widest min-w-[60px] text-center">
+                    {copiedId ? 'COPIED!' : session.sessionId}
+                  </span>
+                </button>
+              </div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{session.className} • {session.subject}</p>
             </div>
           </div>
@@ -199,7 +242,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
 
 
           {/* Session Timing Section */}
-          <section className="bg-white border border-slate-100 p-5 md:p-6 rounded-2xl shadow-sm space-y-4">
+          <section className="bg-white border border-slate-200 p-5 md:p-6 rounded-2xl shadow-sm space-y-4">
             <div className="flex items-center gap-2">
               <Clock size={14} className="text-brand-navy/40" />
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">SESSION TIMING</h3>
@@ -213,7 +256,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                     value={startedTime}
                     onChange={(e) => setStartedTime(e.target.value)}
                     disabled={isCompleted}
-                    className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-brand-navy/20 transition-all disabled:opacity-60"
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all disabled:opacity-60"
                   />
                   <button
                     onClick={() => {
@@ -222,7 +265,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                       setStartedTime(time);
                     }}
                     disabled={isCompleted}
-                    className="h-full aspect-square bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
+                    className="h-full aspect-square bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
                     title="Set to Current Time"
                   >
                     <Clock size={18} />
@@ -237,7 +280,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                     value={endedTime}
                     onChange={(e) => setEndedTime(e.target.value)}
                     disabled={isCompleted}
-                    className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-brand-navy/20 transition-all disabled:opacity-60"
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all disabled:opacity-60"
                   />
                   <button
                     onClick={() => {
@@ -246,7 +289,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                       setEndedTime(time);
                     }}
                     disabled={isCompleted}
-                    className="h-full aspect-square bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
+                    className="h-full aspect-square bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
                     title="Set to Current Time"
                   >
                     <Clock size={18} />
@@ -257,7 +300,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
           </section>
 
           {/* Session Topic Section */}
-          <section className="bg-white border border-slate-100 p-5 md:p-6 rounded-2xl shadow-sm space-y-3">
+          <section className="bg-white border border-slate-200 p-5 md:p-6 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center gap-2">
               <BookOpen size={14} className="text-brand-navy/40" />
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">TOPIC COVERED <span className="text-red-500">*</span></h3>
@@ -267,49 +310,152 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
               onChange={(e) => setTopicCovered(e.target.value)}
               disabled={isCompleted}
               placeholder="What did you teach today? (e.g., Introduction to Photosynthesis, Quadratic Equations Part 2)"
-              className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-brand-navy/20 transition-all min-h-[80px] resize-none disabled:opacity-60"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all min-h-[80px] resize-none disabled:opacity-60"
             />
           </section>
 
-          {/* Session Attachments Section */}
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Upload Proof */}
-            <a
-              href={GOOGLE_FORMS.UPLOAD_FILES}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:border-brand-navy/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]"
-            >
-              <div className="w-12 h-12 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all">
-                <FileUp size={20} />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-700 leading-tight group-hover:text-brand-navy transition-colors">Session Proof</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Limit 1 File</p>
-              </div>
-            </a>
+          {/* Learning Materials & Session Files - Combined Section */}
+          <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
 
-            {/* Upload Materials */}
-            <a
-              href={GOOGLE_FORMS.UPLOAD_FILES}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:border-brand-navy/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]"
-            >
-              <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <StickyNote size={20} />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-700 leading-tight group-hover:text-brand-navy transition-colors">Learning Material</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Helping Documents</p>
-              </div>
-            </a>
+            {/* Upload Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 md:p-6 bg-slate-50/50">
+              {/* Upload Session Proof */}
+              {(() => {
+                const sessionProofFile = session.files.find(f => f.type === 'Session Proof');
+                const hasSessionProof = !!sessionProofFile;
+                return (
+                  <a
+                    href={hasSessionProof ? sessionProofFile.uploadFile : GOOGLE_FORMS.UPLOAD_FILES}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`group border p-4 rounded-xl shadow-sm flex items-center gap-3 transition-all ${hasSessionProof
+                      ? 'bg-green-50/50 border-green-200 cursor-pointer hover:bg-green-50 hover:border-green-300'
+                      : 'bg-white border-slate-100 hover:border-orange-200 hover:shadow-md active:scale-[0.98] cursor-pointer'
+                      }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg border flex items-center justify-center transition-all ${hasSessionProof
+                      ? 'bg-green-100 border-green-200 text-green-600'
+                      : 'bg-orange-50 border-orange-100 text-orange-500 group-hover:bg-orange-500 group-hover:text-white'
+                      }`}>
+                      {hasSessionProof ? <CheckCircle size={18} /> : <FileUp size={18} />}
+                    </div>
+                    <div>
+                      <h4 className={`text-xs font-black leading-tight transition-colors ${hasSessionProof ? 'text-green-700' : 'text-slate-700 group-hover:text-orange-600'
+                        }`}>
+                        {hasSessionProof ? 'Proof Uploaded' : 'Session Proof'}
+                      </h4>
+                      <p className={`text-[9px] font-bold uppercase tracking-wide mt-0.5 ${hasSessionProof ? 'text-green-600/70' : 'text-slate-400'
+                        }`}>
+                        {hasSessionProof ? 'View File' : 'Limit 1 File'}
+                      </p>
+                    </div>
+                  </a>
+                );
+              })()}
+
+              {/* Upload Learning Materials */}
+              <a
+                href={GOOGLE_FORMS.UPLOAD_FILES}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-white border border-slate-100 p-4 rounded-xl shadow-sm flex items-center gap-3 hover:border-blue-200 hover:shadow-md transition-all active:scale-[0.98]"
+              >
+                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                  <StickyNote size={18} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-700 leading-tight group-hover:text-blue-600 transition-colors">Learning Material</h4>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Helping Documents</p>
+                </div>
+              </a>
+            </div>
+
+            {/* Uploaded Files Display - Showing only Learn Docs */}
+            {(() => {
+              const learnDocs = session.files.filter(f => f.type === 'Learn Docs');
+              return learnDocs.length > 0 ? (
+                <>
+                  <button
+                    onClick={() => setShowFiles(!showFiles)}
+                    className="w-full flex items-center justify-between px-5 md:px-6 py-4 bg-white hover:bg-slate-50 transition-all border-t border-slate-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-slate-700">Uploaded Files</span>
+                      <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-black">
+                        {learnDocs.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        role="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRefreshFiles();
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isRefreshingFiles ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400 hover:bg-brand-navy hover:text-white'}`}
+                        title="Refresh file list"
+                      >
+                        <RefreshCcw size={14} className={isRefreshingFiles ? 'animate-spin' : ''} />
+                      </div>
+                      <ChevronDown
+                        size={18}
+                        className={`text-slate-400 transition-transform duration-300 ${showFiles ? 'rotate-180' : ''}`}
+                      />
+                    </div>
+                  </button>
+
+                  {showFiles && (
+                    <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-white">
+                      {learnDocs.map((file, idx) => (
+                        <a
+                          key={idx}
+                          href={file.uploadFile}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 hover:border-blue-200 transition-all group"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                              <FileText size={18} className="text-white" />
+                            </div>
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="text-sm font-black text-slate-800 truncate">
+                                {file.fileName}
+                              </span>
+                              <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">
+                                Learn Document
+                              </span>
+                            </div>
+                          </div>
+                          <Download size={16} className="text-blue-600 group-hover:translate-y-0.5 transition-transform flex-shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="px-5 md:px-6 py-8 text-center border-t border-slate-200 relative">
+                  <div className="absolute top-4 right-4">
+                    <button
+                      onClick={handleRefreshFiles}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isRefreshingFiles ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400 hover:bg-brand-navy hover:text-white'}`}
+                      title="Refresh file list"
+                    >
+                      <RefreshCcw size={14} className={isRefreshingFiles ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                  <FileText size={32} className="mx-auto text-slate-200 mb-2" />
+                  <p className="text-xs font-bold text-slate-400">No learning materials yet</p>
+                  <p className="text-[9px] text-slate-300 mt-1">Upload documents using the blue button above</p>
+                </div>
+              );
+            })()}
           </section>
 
           {/* Bulk Action & Stats Container */}
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {!isCompleted ? (
-              <div className="lg:col-span-9 bg-white border border-slate-100 p-5 md:p-6 rounded-2xl shadow-sm flex flex-col xl:flex-row gap-6 xl:gap-10">
+              <div className="lg:col-span-9 bg-white border border-slate-200 p-5 md:p-6 rounded-2xl shadow-sm flex flex-col xl:flex-row gap-6 xl:gap-10">
                 {/* Bulk Status */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -366,7 +512,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                       value={globalComment}
                       onChange={(e) => setGlobalComment(e.target.value)}
                       placeholder="Observation for all..."
-                      className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 text-xs font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-brand-navy/20 transition-all"
+                      className="flex-1 bg-white border border-slate-200 rounded-xl px-4 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all"
                     />
                     <button
                       onClick={applyGlobalSettings}
@@ -378,7 +524,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                 </div>
               </div>
             ) : (
-              <div className="lg:col-span-9 bg-white border border-slate-100 p-6 rounded-2xl flex items-center gap-5">
+              <div className="lg:col-span-9 bg-white border border-slate-200 p-6 rounded-2xl flex items-center gap-5">
                 <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
                   <History size={28} />
                 </div>
@@ -390,7 +536,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
             )}
 
             {/* Presence Summary */}
-            <div className="lg:col-span-3 bg-white border border-slate-100 p-6 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="lg:col-span-3 bg-white border border-slate-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-40 group-hover:rotate-180 transition-transform duration-700">
                 <RefreshCcw size={12} className="text-slate-300" />
               </div>
@@ -411,7 +557,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
           </section>
 
           {/* Student Roll Table */}
-          <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
@@ -474,7 +620,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                             onChange={(e) => updateReview(student.id, e.target.value)}
                             disabled={isCompleted}
                             placeholder="Add note..."
-                            className="w-full bg-slate-50 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 border border-transparent outline-none focus:bg-white focus:border-slate-100 focus:ring-4 focus:ring-brand-navy/5 placeholder:text-slate-300 transition-all disabled:opacity-70"
+                            className="w-full bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-slate-300 focus:ring-4 focus:ring-brand-navy/5 placeholder:text-slate-300 transition-all disabled:opacity-70"
                           />
                         </div>
                       </td>

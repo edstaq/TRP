@@ -174,7 +174,14 @@ export const sessionService = {
                             listeningRate: 0,
                             review: ''
                         })),
-                        files: [],
+                        files: (item["Files"] || []).map(file => ({
+                            timestamp: file["Timestamp"],
+                            email: file["Email address"],
+                            sessionId: file["Session ID"],
+                            fileName: file["File Name"],
+                            uploadFile: file["Upload File"],
+                            type: file["Type"]
+                        })),
                         topicCovered: item["Topic covered"] || "",
                         startedTime: item["Started Time"] || "",
                         endedTime: item["Ended Time"] || ""

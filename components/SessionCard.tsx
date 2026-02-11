@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Session, SessionStatus } from '../types';
-import { Clock, Users, Key, ChevronRight, FileUp, Tag, Video, Check } from 'lucide-react';
+import { Clock, Users, Key, ChevronRight, FileUp, Tag, Video, Check, FileText } from 'lucide-react';
 import { GOOGLE_FORMS, MOCK_ALLOCATIONS } from '../constants';
 
 interface SessionCardProps {
@@ -56,6 +56,10 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
 
   const startTime = new Date(session.startTime);
   const timeStr = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  // Count files by type
+  const learnDocsCount = session.files.filter(f => f.type === 'Learn Docs').length;
+  const sessionProofsCount = session.files.filter(f => f.type === 'Session Proof').length;
 
   return (
     <div className={`group relative bg-white rounded-3xl border border-slate-100 p-6 transition-all duration-500 shadow-[0_4px_25px_rgba(0,0,0,0.03)] hover:shadow-[0_15px_50px_-10px_rgba(0,17,113,0.08)] ${isCompleted ? 'grayscale-[0.4] opacity-95' : ''}`}>
@@ -149,8 +153,26 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
         )}
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="flex gap-2.5">
+      {/* Bottom Action Bar with File Counts */}
+      <div className="flex items-center gap-3">
+        {/* File Count Badges - Left Side */}
+        <div className="flex flex-wrap items-center gap-2">
+          {learnDocsCount > 0 && (
+            <div className="w-11 h-11 rounded-xl bg-white border border-blue-200 flex flex-col items-center justify-center leading-none">
+              <span className="text-sm font-black text-blue-600">{learnDocsCount}</span>
+              <span className="text-[7px] font-black text-blue-400 uppercase tracking-tight">Docs</span>
+            </div>
+          )}
+
+          {sessionProofsCount > 0 && (
+            <div className="w-11 h-11 rounded-xl bg-white border border-green-200 flex flex-col items-center justify-center leading-none">
+              <Check size={16} className="text-green-500 mb-0.5" strokeWidth={3} />
+              <span className="text-[7px] font-black text-green-500 uppercase tracking-tight">Proof</span>
+            </div>
+          )}
+        </div>
+
+        {/* Manage Session Button - Right Side */}
         <button
           onClick={() => onManage(session)}
           className={`flex-1 h-11 rounded-xl flex items-center justify-center gap-3 font-black text-[9px] tracking-[0.2em] uppercase transition-all shadow-md active:scale-[0.98] ${isCompleted
@@ -161,15 +183,6 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
           {isCompleted ? 'REVIEW LOGS' : 'MANAGE SESSION'}
           <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
         </button>
-
-        <a
-          href={GOOGLE_FORMS.UPLOAD_FILES}
-          target="_blank"
-          className="w-11 h-11 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-300 hover:text-brand-navy hover:bg-white hover:border-brand-navy/30 transition-all shadow-sm active:scale-90"
-          title="Upload session files"
-        >
-          <FileUp size={18} />
-        </a>
       </div>
     </div>
   );

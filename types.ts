@@ -13,6 +13,24 @@ export interface Student {
   review: string;
 }
 
+export interface SessionFile {
+  timestamp: string;
+  email: string;
+  sessionId: string;
+  fileName: string;
+  uploadFile: string; // Google Drive link
+  type: 'Learn Docs' | 'Session Proof';
+}
+
+export interface ApiSessionFile {
+  "Timestamp": string;
+  "Email address": string;
+  "Session ID": string;
+  "File Name": string;
+  "Upload File": string;
+  "Type": "Learn Docs" | "Session Proof";
+}
+
 export interface SubjectCatalogItem {
   id: string;
   category: string;
@@ -40,7 +58,7 @@ export interface Session {
   durationMinutes: number;
   status: SessionStatus;
   students: Student[];
-  files: Array<{ name: string; url: string }>;
+  files: SessionFile[];
   topicCovered?: string;
   startedTime?: string;
   endedTime?: string;
@@ -107,6 +125,7 @@ export interface ApiSession {
   "Topic covered": string;
   "Started Time"?: string;
   "Ended Time"?: string;
+  "Files": ApiSessionFile[];
 }
 
 export interface ApiStudentLog {
