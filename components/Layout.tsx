@@ -24,8 +24,16 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-white text-slate-900 p-6 flex-col sticky top-0 h-screen border-r border-slate-200">
         <div className="mb-10 flex items-center gap-3 px-2">
-          <div className="w-9 h-9 bg-brand-navy rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-navy/20">
-            <BookOpen size={18} />
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-brand-navy/10 overflow-hidden border border-slate-100">
+            <img
+              src="/assets/brand-logo.png"
+              alt="Logo"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open text-brand-navy"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
+              }}
+            />
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tight text-brand-navy leading-none">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
@@ -63,8 +71,16 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
       {/* Mobile Top Header */}
       <header className="md:hidden flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100 sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-navy rounded-lg flex items-center justify-center text-white">
-            <BookOpen size={16} />
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 overflow-hidden">
+            <img
+              src="/assets/brand-logo.png"
+              alt="Logo"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open text-brand-navy"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
+              }}
+            />
           </div>
           <h1 className="font-black text-brand-navy tracking-tight text-lg">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
         </div>

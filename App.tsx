@@ -14,6 +14,7 @@ import { allocationService } from './services/allocationService';
 import { LogIn, BookOpen, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
 import { APP_CONFIG } from './config';
 import LoadingPopup from './components/LoadingPopup';
+import GoogleDriveUploadTest from './components/GoogleDriveUploadTest';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -207,8 +208,16 @@ const App: React.FC = () => {
 
         <div className="w-full max-w-sm relative z-10 animate-in fade-in zoom-in duration-700">
           <div className="text-center mb-12">
-            <div className="w-20 h-20 bg-brand-navy rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-brand-navy/30 mx-auto mb-6 transform hover:rotate-6 transition-transform">
-              <BookOpen size={40} />
+            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-navy/30 mx-auto mb-6 transform hover:rotate-6 transition-transform border border-slate-100 overflow-hidden">
+              <img
+                src="/assets/brand-logo.png"
+                alt="Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full bg-brand-navy flex items-center justify-center text-white"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>';
+                }}
+              />
             </div>
             <h1 className="text-3xl font-black text-brand-navy tracking-tight mb-1">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
             <p className="text-slate-400 font-bold uppercase text-[9px] tracking-[0.4em]">{APP_CONFIG.PORTAL_INFO.FULL_NAME}</p>
@@ -498,6 +507,9 @@ const App: React.FC = () => {
             onOpenCatalog={() => setIsCatalogView(true)}
           />
         );
+
+      case 'upload':
+        return <GoogleDriveUploadTest />;
 
       default:
         return null;
