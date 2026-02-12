@@ -40,7 +40,8 @@ const App: React.FC = () => {
         email: '',
         mobile: '',
         subjects: [],
-        availability: []
+        availability: [],
+        status: 'Active'
       };
     } catch (e) {
       console.error('Failed to parse saved teacher profile', e);
@@ -50,7 +51,8 @@ const App: React.FC = () => {
         email: '',
         mobile: '',
         subjects: [],
-        availability: []
+        availability: [],
+        status: 'Active'
       };
     }
   });
@@ -109,7 +111,8 @@ const App: React.FC = () => {
       email: '',
       mobile: '',
       subjects: [],
-      availability: []
+      availability: [],
+      status: 'Active'
     });
     setActiveTab('dashboard');
   };
@@ -153,7 +156,8 @@ const App: React.FC = () => {
         email: teacherData['Mail'] || '',
         mobile: teacherData['Contact'],
         subjects: subjects,
-        availability: []
+        availability: [],
+        status: (teacherData['Status'] as 'Active' | 'In-Active') || 'Active'
       });
 
       setIsAuthenticated(true);
@@ -210,7 +214,7 @@ const App: React.FC = () => {
           <div className="text-center mb-12">
             <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-navy/30 mx-auto mb-6 transform hover:rotate-6 transition-transform border border-slate-100 overflow-hidden">
               <img
-                src="/assets/brand-logo.svg"
+                src="/assets/brand-logo.png"
                 alt="Logo"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -291,6 +295,19 @@ const App: React.FC = () => {
         });
       } catch (e) {
         console.error('Failed to sync profile update', e);
+      } finally {
+        setIsSessionsLoading(false);
+      }
+    }
+
+    if (updated.status !== teacherProfile.status) {
+      setIsSessionsLoading(true);
+      try {
+        await teacherService.updateTeacher(updated.mobile, {
+          "Status": updated.status
+        });
+      } catch (e) {
+        console.error('Failed to sync status update', e);
       } finally {
         setIsSessionsLoading(false);
       }

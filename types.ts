@@ -76,6 +76,7 @@ export interface TeacherProfile {
   mobile: string;
   subjects: string[]; // These will be IDs from the catalog
   availability: Availability[];
+  status?: 'Active' | 'In-Active';
 }
 
 export interface Allocation {

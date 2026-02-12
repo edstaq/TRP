@@ -324,6 +324,16 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-navy/5 border border-brand-navy/10 rounded-full text-[9px] font-black uppercase tracking-widest text-brand-navy">
                 <ShieldCheck size={11} strokeWidth={3} /> INSTITUTIONAL ID: {profile.id}
               </span>
+              <button
+                onClick={() => onUpdate({ ...profile, status: profile.status === 'Active' ? 'In-Active' : 'Active' })}
+                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all gap-2 flex items-center ${profile.status === 'Active'
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'
+                  }`}
+              >
+                <div className={`w-2 h-2 rounded-full ${profile.status === 'Active' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`} />
+                {profile.status || 'Active'}
+              </button>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-500 font-bold text-[13px] justify-center md:justify-start mt-3">
               {profile.email && profile.email.includes('@') && <span className="flex items-center gap-1.5"><Mail size={14} className="text-brand-navy/30" /> {profile.email}</span>}
