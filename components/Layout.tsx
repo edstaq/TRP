@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Calendar, History, User, LogOut, Layers } from 'lucide-react';
+import { LayoutDashboard, Calendar, History, User, LogOut, Layers, MessageCircle } from 'lucide-react';
 import { APP_CONFIG } from '../config';
 
 interface LayoutProps {
@@ -59,9 +59,19 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
           ))}
         </nav>
 
+        <a
+          href={APP_CONFIG.GOOGLE_FORMS.SUPPORT_LINK}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-4 py-4 text-slate-400 hover:text-green-600 transition-all font-bold group mt-auto"
+        >
+          <MessageCircle size={18} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm">Support</span>
+        </a>
+
         <button
           onClick={onLogout}
-          className="mt-auto flex items-center gap-3 px-4 py-4 text-slate-400 hover:text-red-500 transition-all font-bold group"
+          className="flex items-center gap-3 px-4 py-4 text-slate-400 hover:text-red-500 transition-all font-bold group"
         >
           <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm">Sign Out</span>

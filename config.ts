@@ -20,7 +20,8 @@ export const APP_CONFIG = {
         REFER_FRIEND: 'https://docs.google.com/forms/d/e/1FAIpQLSf-placeholder-referral/viewform',
         COMPLAINT: 'https://docs.google.com/forms/d/e/1FAIpQLSd-placeholder-complaint/viewform',
         FEEDBACK: 'https://docs.google.com/forms/d/e/1FAIpQLSd-placeholder-feedback/viewform',
-        UPLOAD_FILES: 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=dialog'
+        UPLOAD_FILES: 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=dialog',
+        SUPPORT_LINK: 'https://wa.me/917510204021'
     },
 
 
