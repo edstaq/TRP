@@ -373,7 +373,7 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
         <div className="flex items-center gap-2 px-2">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Forms & Requests</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <a
             href={GOOGLE_FORMS.COMPLAINT}
             target="_blank"
@@ -398,6 +398,20 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
                 <MessageSquare size={20} />
               </div>
               <span className="text-sm font-bold text-slate-700">Give Feedback</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+          </a>
+
+          <a
+            href={GOOGLE_FORMS.RESCHEDULE_REQUEST}
+            target="_blank"
+            className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-blue-100 transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Clock size={20} />
+              </div>
+              <span className="text-sm font-bold text-slate-700">Reschedule Request</span>
             </div>
             <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
           </a>

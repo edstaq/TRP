@@ -21,6 +21,7 @@ export const APP_CONFIG = {
         COMPLAINT: 'https://docs.google.com/forms/d/e/1FAIpQLSd4BvP77gljW3J6AFpLz8q3INz1DTIqKrUMmDyFVmoEFLv58w/viewform?usp=header',
         FEEDBACK: 'https://docs.google.com/forms/d/e/1FAIpQLSfzWBEVM4K_lISOLqHTnzHs-v1yGESyj5Hqvz88699VkssJvA/viewform?usp=header',
         UPLOAD_FILES: 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=dialog',
+        RESCHEDULE_REQUEST: 'https://docs.google.com/forms/d/e/1FAIpQLScaSDHH-sBO9_1i2FyL6qtES0o1MABTLHbGvhQNEfdXcfTJ8w/viewform?usp=dialog',
         SUPPORT_LINK: 'https://wa.me/917510204021'
     },
 
