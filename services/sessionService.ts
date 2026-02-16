@@ -183,8 +183,8 @@ export const sessionService = {
                             type: file["Type"]
                         })),
                         topicCovered: item["Topic covered"] || "",
-                        startedTime: item["Started Time"] || "",
-                        endedTime: item["Ended Time"] || ""
+                        startedTime: formatForInput(item["Started Time"] || ""),
+                        endedTime: formatForInput(item["Ended Time"] || "")
                     };
                 });
             }
@@ -220,3 +220,18 @@ export const sessionService = {
         }
     }
 };
+
+/**
+ * Helper to ensure time is in HH:mm format for HTML input
+ */
+function formatForInput(timeStr: string): string {
+    if (!timeStr) return '';
+
+    // If it's already HH:mm (simple check)
+    if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+
+    const time = parseTime(timeStr);
+    if (!time) return '';
+
+    return `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`;
+}
