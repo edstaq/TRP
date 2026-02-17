@@ -13,6 +13,69 @@ interface AvailabilityManagerProps {
   onOpenCatalog: () => void;
 }
 
+interface TimeSelectorProps {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}
+
+const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange, className }) => {
+  // Parse "HH:mm" to 12h format
+  const parseTime = (val: string) => {
+    if (!val) return { h: '09', m: '00', p: 'AM' };
+    const [hStr, mStr] = val.split(':');
+    let h = parseInt(hStr, 10);
+    const p = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return {
+      h: String(h).padStart(2, '0'),
+      m: mStr,
+      p
+    };
+  };
+
+  const { h, m, p } = parseTime(value);
+
+  const updateTime = (newH: string, newM: string, newP: string) => {
+    let hour = parseInt(newH, 10);
+    if (newP === 'PM' && hour < 12) hour += 12;
+    if (newP === 'AM' && hour === 12) hour = 0;
+    onChange(`${String(hour).padStart(2, '0')}:${newM}`);
+  };
+
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <select
+        value={h}
+        onChange={(e) => updateTime(e.target.value, m, p)}
+        className="bg-transparent text-xs font-black text-slate-700 outline-none p-1 rounded hover:bg-slate-100 cursor-pointer appearance-none text-center min-w-[30px]"
+      >
+        {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+          <option key={h} value={String(h).padStart(2, '0')}>{String(h).padStart(2, '0')}</option>
+        ))}
+      </select>
+      <span className="text-xs font-black text-slate-400">:</span>
+      <select
+        value={m}
+        onChange={(e) => updateTime(h, e.target.value, p)}
+        className="bg-transparent text-xs font-black text-slate-700 outline-none p-1 rounded hover:bg-slate-100 cursor-pointer appearance-none text-center min-w-[30px]"
+      >
+        {Array.from({ length: 12 }, (_, i) => i * 5).map(m => (
+          <option key={m} value={String(m).padStart(2, '0')}>{String(m).padStart(2, '0')}</option>
+        ))}
+      </select>
+      <select
+        value={p}
+        onChange={(e) => updateTime(h, m, e.target.value)}
+        className="bg-transparent text-[10px] font-black text-slate-500 outline-none p-1 rounded hover:bg-slate-100 cursor-pointer appearance-none ml-1 uppercase tracking-wider"
+      >
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+    </div>
+  );
+};
+
 const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUpdate, onOpenCatalog }) => {
   const [subjects, setSubjects] = useState<string[]>(profile.subjects);
   const [availability, setAvailability] = useState<Availability[]>([]);
@@ -506,23 +569,32 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
 
                 <div className="flex-1 px-4 md:px-8 py-4 flex flex-wrap items-center gap-2 md:gap-3">
                   {dayData?.slots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center gap-2 md:gap-3 bg-white border border-slate-200 px-3 md:px-4 py-2 rounded-xl shadow-sm hover:border-brand-navy/30 transition-all group/slot">
-                      <input
-                        type="time"
-                        value={slot.start}
-                        onChange={(e) => updateSlot(day, idx, 'start', e.target.value)}
-                        className="bg-transparent text-xs font-black text-slate-700 outline-none w-[70px] md:w-auto"
-                      />
-                      <div className="w-2 h-[2px] bg-slate-200" />
-                      <input
-                        type="time"
-                        value={slot.end}
-                        onChange={(e) => updateSlot(day, idx, 'end', e.target.value)}
-                        className="bg-transparent text-xs font-black text-slate-700 outline-none w-[70px] md:w-auto"
-                      />
+                    <div key={idx} className="flex items-center gap-1.5 md:gap-3 bg-white border border-slate-200 px-2 md:px-4 py-1.5 md:py-2 rounded-xl shadow-sm hover:border-brand-navy/30 transition-all group/slot">
+                      <div className="flex flex-col md:flex-row items-center gap-1 md:gap-3">
+                        <div className="flex flex-col items-center md:items-start gap-1">
+                          <span className="text-[8px] font-black text-slate-300 md:hidden uppercase tracking-widest">START</span>
+                          <TimeSelector
+                            value={slot.start}
+                            onChange={(val) => updateSlot(day, idx, 'start', val)}
+                          />
+                        </div>
+
+                        <div className="md:block w-3 h-[2px] bg-slate-200 mx-1 hidden" />
+
+                        <div className="w-full h-[1px] bg-slate-100 my-1 md:hidden" />
+
+                        <div className="flex flex-col items-center md:items-start gap-1">
+                          <span className="text-[8px] font-black text-slate-300 md:hidden uppercase tracking-widest">END</span>
+                          <TimeSelector
+                            value={slot.end}
+                            onChange={(val) => updateSlot(day, idx, 'end', val)}
+                          />
+                        </div>
+                      </div>
+                      <div className="w-[1px] h-8 bg-slate-100 mx-0.5 md:hidden" />
                       <button
                         onClick={() => removeSlot(day, idx)}
-                        className="text-slate-300 hover:text-red-500 transition-colors ml-1 p-1 hover:bg-red-50 rounded-lg shrink-0"
+                        className="text-slate-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-lg shrink-0"
                       >
                         <Trash2 size={14} />
                       </button>
