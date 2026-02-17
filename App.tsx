@@ -8,7 +8,6 @@ import AvailabilityManager from './components/AvailabilityManager';
 import AllocationDashboard from './components/AllocationDashboard';
 import SubjectSelectorModal from './components/SubjectSelectorModal';
 import { sessionService } from './services/sessionService';
-import { MOCK_SESSIONS } from './constants';
 import { Session, SessionStatus, TeacherProfile, Allocation } from './types';
 import { allocationService } from './services/allocationService';
 import { LogIn, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
@@ -68,14 +67,14 @@ const App: React.FC = () => {
             allocationService.fetchByTeacherId(teacherProfile.id)
           ]);
 
-          const sortedSessions = (sessionData.length > 0 ? sessionData : MOCK_SESSIONS).sort((a, b) =>
+          const sortedSessions = sessionData.sort((a, b) =>
             new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
           );
           setSessions(sortedSessions);
           setAllocations(allocationData);
         } catch (error) {
           console.error('Failed to fetch data:', error);
-          setSessions(MOCK_SESSIONS);
+          setSessions([]);
         } finally {
           setIsSessionsLoading(false);
         }

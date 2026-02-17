@@ -182,6 +182,7 @@ export const sessionService = {
                             uploadFile: file["Upload File"],
                             type: file["Type"]
                         })),
+                        meetLink: item["Class link"] || "",
                         topicCovered: item["Topic covered"] || "",
                         startedTime: formatForInput(item["Started Time"] || ""),
                         endedTime: formatForInput(item["Ended Time"] || "")

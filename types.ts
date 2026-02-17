@@ -59,6 +59,7 @@ export interface Session {
   status: SessionStatus;
   students: Student[];
   files: SessionFile[];
+  meetLink?: string;
   topicCovered?: string;
   startedTime?: string;
   endedTime?: string;

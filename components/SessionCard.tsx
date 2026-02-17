@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Session, SessionStatus } from '../types';
 import { Clock, Users, Key, ChevronRight, FileUp, Tag, Video, Check, FileText } from 'lucide-react';
-import { GOOGLE_FORMS, MOCK_ALLOCATIONS } from '../constants';
+import { GOOGLE_FORMS } from '../constants';
 
 interface SessionCardProps {
   session: Session;
@@ -23,7 +23,6 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
   };
 
   const isCompleted = session.status === SessionStatus.COMPLETED;
-  const allocation = MOCK_ALLOCATIONS.find(a => a.assignId === session.allocationId);
 
   useEffect(() => {
     if (isCompleted) {
@@ -37,10 +36,10 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
       const diffMs = sessionTime.getTime() - now.getTime();
       const diffMins = Math.floor(diffMs / (1000 * 60));
 
-      // Reveal ID if it's 15 minutes before start OR if it's already started/ended
-      setIsIDVisible(diffMins <= 15);
+      // Reveal ID if it's 30 minutes before start OR if it's already started/ended
+      setIsIDVisible(diffMins <= 30);
 
-      if (diffMins > 15) {
+      if (diffMins > 30) {
         setCountdown(`${diffMins}M UNTIL ID REVEAL`);
       } else if (diffMins <= 0 && diffMins > -session.durationMinutes) {
         setCountdown('ACTIVE NOW');
@@ -140,9 +139,9 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
         )}
 
         {/* Join Classroom Button (Remains Dark per Screenshot) */}
-        {allocation && allocation.meetLink && !isCompleted && (
+        {session.meetLink && !isCompleted && isIDVisible && (
           <a
-            href={allocation.meetLink.startsWith('http') ? allocation.meetLink : `https://${allocation.meetLink}`}
+            href={session.meetLink.startsWith('http') ? session.meetLink : `https://${session.meetLink}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 text-white rounded-lg hover:bg-black transition-all shadow-sm active:scale-95"
