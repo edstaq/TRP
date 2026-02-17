@@ -152,7 +152,7 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
 
               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="w-full overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left border-collapse table-fixed">
+                  <table className="w-full min-w-[900px] text-left border-collapse table-fixed">
                     <thead>
                       <tr className="bg-slate-50/50">
                         <th className="w-[32%] px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">ID / CLASS / STUDENT</th>

@@ -497,32 +497,32 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
             const dayData = availability.find(a => a.day === day);
             return (
               <div key={day} className="flex flex-col md:flex-row items-stretch md:items-center transition-colors hover:bg-white group">
-                <div className="md:w-44 px-8 py-5 border-b md:border-b-0 md:border-r border-slate-100 flex items-center justify-between md:justify-start">
+                <div className="md:w-44 px-4 md:px-8 py-5 border-b md:border-b-0 md:border-r border-slate-100 flex items-center justify-between md:justify-start">
                   <span className="font-black text-slate-800 tracking-tight text-sm uppercase group-hover:text-brand-navy transition-colors">{day}</span>
                   <div className="md:hidden">
                     <button onClick={() => addSlot(day)} className="p-2 text-brand-navy"><Plus size={18} /></button>
                   </div>
                 </div>
 
-                <div className="flex-1 px-8 py-4 flex flex-wrap items-center gap-3">
+                <div className="flex-1 px-4 md:px-8 py-4 flex flex-wrap items-center gap-2 md:gap-3">
                   {dayData?.slots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm hover:border-brand-navy/30 transition-all group/slot">
+                    <div key={idx} className="flex items-center gap-2 md:gap-3 bg-white border border-slate-200 px-3 md:px-4 py-2 rounded-xl shadow-sm hover:border-brand-navy/30 transition-all group/slot">
                       <input
                         type="time"
                         value={slot.start}
                         onChange={(e) => updateSlot(day, idx, 'start', e.target.value)}
-                        className="bg-transparent text-xs font-black text-slate-700 outline-none"
+                        className="bg-transparent text-xs font-black text-slate-700 outline-none w-[70px] md:w-auto"
                       />
                       <div className="w-2 h-[2px] bg-slate-200" />
                       <input
                         type="time"
                         value={slot.end}
                         onChange={(e) => updateSlot(day, idx, 'end', e.target.value)}
-                        className="bg-transparent text-xs font-black text-slate-700 outline-none"
+                        className="bg-transparent text-xs font-black text-slate-700 outline-none w-[70px] md:w-auto"
                       />
                       <button
                         onClick={() => removeSlot(day, idx)}
-                        className="text-slate-300 hover:text-red-500 transition-colors ml-1 p-1 hover:bg-red-50 rounded-lg"
+                        className="text-slate-300 hover:text-red-500 transition-colors ml-1 p-1 hover:bg-red-50 rounded-lg shrink-0"
                       >
                         <Trash2 size={14} />
                       </button>
