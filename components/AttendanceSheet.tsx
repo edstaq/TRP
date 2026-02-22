@@ -125,6 +125,12 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
     }
 
     const presentStudents = students.filter(s => s.attended);
+
+    if (presentStudents.length === 0) {
+      alert('Please mark at least one student as present.');
+      return;
+    }
+
     const unratedStudents = presentStudents.filter(s => s.listeningRate === 0);
 
     if (unratedStudents.length > 0) {
