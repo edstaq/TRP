@@ -329,9 +329,11 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
               {(() => {
                 const sessionProofFile = session.files.find(f => f.type === 'Session Proof');
                 const hasSessionProof = !!sessionProofFile;
+                const proofUploadUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Session+Proof&entry.579457268=Screenshot`;
+                
                 return (
                   <a
-                    href={hasSessionProof ? sessionProofFile.uploadFile : GOOGLE_FORMS.UPLOAD_FILES}
+                    href={hasSessionProof ? sessionProofFile.uploadFile : proofUploadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`group border p-4 rounded-xl shadow-sm flex items-center gap-3 transition-all ${hasSessionProof
@@ -361,7 +363,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
 
               {/* Upload Learning Materials */}
               <a
-                href={GOOGLE_FORMS.UPLOAD_FILES}
+                href={`https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Learn+Docs&entry.579457268=`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group bg-white border border-slate-100 p-4 rounded-xl shadow-sm flex items-center gap-3 hover:border-blue-200 hover:shadow-md transition-all active:scale-[0.98]"
