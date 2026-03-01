@@ -465,19 +465,6 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
             <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
           </a>
 
-          <a
-            href={GOOGLE_FORMS.RESCHEDULE_REQUEST}
-            target="_blank"
-            className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-blue-100 transition-all flex items-center justify-between"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Clock size={20} />
-              </div>
-              <span className="text-sm font-bold text-slate-700">Reschedule Request</span>
-            </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
-          </a>
 
           <a
             href={GOOGLE_FORMS.REFER_FRIEND}

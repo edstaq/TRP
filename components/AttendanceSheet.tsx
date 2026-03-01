@@ -60,7 +60,18 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
     fetchExistingLogs();
   }, [session.sessionId]);
 
+
   const isCompleted = session.status === SessionStatus.COMPLETED;
+
+  // Format Scheduled Date & Time for Reschedule Form (Format: YYYY-MM-DD+hh:mm)
+  const dt = new Date(session.startTime);
+  const YYYY = dt.getFullYear();
+  const MM = String(dt.getMonth() + 1).padStart(2, '0');
+  const DD = String(dt.getDate()).padStart(2, '0');
+  const hh = String(dt.getHours()).padStart(2, '0');
+  const mm = String(dt.getMinutes()).padStart(2, '0');
+  const scheduledTimeStr = `${YYYY}-${MM}-${DD}+${hh}:${mm}`;
+  const dynamicRescheduleUrl = `https://docs.google.com/forms/d/e/1FAIpQLScaSDHH-sBO9_1i2FyL6qtES0o1MABTLHbGvhQNEfdXcfTJ8w/viewform?usp=pp_url&entry.1835484315=${encodeURIComponent(session.sessionId)}&entry.1523317442=${scheduledTimeStr}`;
 
   const toggleAttendance = (id: string) => {
     if (isCompleted) return;
@@ -330,7 +341,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                 const sessionProofFile = session.files.find(f => f.type === 'Session Proof');
                 const hasSessionProof = !!sessionProofFile;
                 const proofUploadUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Session+Proof&entry.579457268=Screenshot`;
-                
+
                 return (
                   <a
                     href={hasSessionProof ? sessionProofFile.uploadFile : proofUploadUrl}
@@ -639,6 +650,23 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
             </div>
           </section>
 
+
+
+          {/* Reschedule Button - Inline Bottom Right Alignment */}
+          {!isCompleted && (
+            <div className="flex justify-end pt-4 pb-8">
+              <a
+                href={dynamicRescheduleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 p-3 px-5 bg-white border border-slate-100 text-slate-400 rounded-2xl hover:text-brand-navy hover:border-brand-navy/10 hover:bg-slate-50 transition-all active:scale-95 group"
+                title="Request session reschedule"
+              >
+                <RefreshCcw size={11} className="group-hover:rotate-180 transition-transform duration-700 font-bold" />
+                <span className="text-[9px] font-extrabold uppercase tracking-[0.2em]">Reschedule Session?</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
