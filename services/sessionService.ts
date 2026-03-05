@@ -107,9 +107,9 @@ const calculateDuration = (startTimeStr: string, endTimeStr: string): number => 
  * Maps API Status to internal SessionStatus enum
  */
 const mapStatus = (status: string): SessionStatus => {
-    const s = status?.toUpperCase();
+    const s = status?.trim().toUpperCase();
     if (s === 'COMPLETED') return SessionStatus.COMPLETED;
-    if (s === 'SCHEDULED' || s === 'UPCOMING' || !s) return SessionStatus.UPCOMING;
+    if (!status || s === '') return SessionStatus.UPCOMING;
     return SessionStatus.IN_PROGRESS;
 };
 

@@ -343,14 +343,14 @@ const App: React.FC = () => {
         // Pending count includes all sessions up to the end of today that are not completed
         const pendingUpToToday = sessions.filter(s => {
           const d = new Date(s.startTime);
-          return d < tomorrow && s.status !== SessionStatus.COMPLETED;
+          return d < tomorrow && s.status === SessionStatus.UPCOMING;
         }).length;
 
         const todayCompleted = todaySessions.filter(s => s.status === SessionStatus.COMPLETED).length;
 
         const nextWeekCount = sessions.filter(s => {
           const d = new Date(s.startTime);
-          return d >= tomorrow && d <= next7Days;
+          return d >= tomorrow && d <= next7Days && s.status === SessionStatus.UPCOMING;
         }).length;
 
         const activeAllocations = allocations.filter(a => (a.status || 'Active').toLowerCase() === 'active');
@@ -367,7 +367,7 @@ const App: React.FC = () => {
           totalStudents: totalUniqueStudents
         };
 
-        const next = sessions.find(s => s.status !== SessionStatus.COMPLETED);
+        const next = sessions.find(s => s.status === SessionStatus.UPCOMING);
 
         return (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -467,7 +467,7 @@ const App: React.FC = () => {
         );
 
       case 'upcoming':
-        const upcomingList = sessions.filter(s => s.status !== SessionStatus.COMPLETED);
+        const upcomingList = sessions.filter(s => s.status === SessionStatus.UPCOMING);
         return (
           <div className="space-y-10 animate-in slide-in-from-bottom-8 duration-700">
             <div className="px-2">
