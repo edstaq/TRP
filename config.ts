@@ -10,7 +10,7 @@ export const APP_CONFIG = {
         SUBJECT: 'https://script.google.com/macros/s/AKfycby-zYMWd2uxaSvDwHp336uoz2w0r4UfwD69_Gape9FXOzg4B__L8Jc-fXxq59Y9UQdrRQ/exec',
         AVAILABILITY: 'https://script.google.com/macros/s/AKfycbxmTzvJIW1GIwwQij9SS6gUr3qpDBt5w0K81TllvfEG569wTSf2DbS07bJRweiHZAAQ/exec',
         ALLOCATION: 'https://script.google.com/macros/s/AKfycbwuzCTP0cK91jWUqHhvypJQhbw-X1xFvkCQIWmucsVcJaU3GccGIY8VEV-J02-beYx1qw/exec',
-        SESSION: 'https://script.google.com/macros/s/AKfycbyFoDXi-9kSGZsEfRUl0dh9CPZHzSSpZkTpqN_DFYqj7zYtOcC3Z17R3Aq7IvIHz6952A/exec',
+        SESSION: 'https://script.google.com/macros/s/AKfycbxphDk4brk1ngyFl4W6nWDwI3-v870D2iPZ2IKzYWIXPz0noMsFDhKQbnWSs9m4wUHB/exec',
         STUDENT_LOG: 'https://script.google.com/macros/s/AKfycbw0OBau3M7WsU14zGTiKpsTfbJgajnGVyZRvtb-CcFDU8uJZPPwu3JSPgMVlMgDs2gW/exec',
         STUDENT: 'https://script.google.com/macros/s/AKfycbwno4xusBgka6B6-8vvqdV79K-xtEG1MUCQ-B-d861SWwkxiWvVuXRIeI33e89e2QoUCQ/exec',
     },
