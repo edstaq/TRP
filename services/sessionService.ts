@@ -109,7 +109,7 @@ const calculateDuration = (startTimeStr: string, endTimeStr: string): number => 
 const mapStatus = (status: string): SessionStatus => {
     const s = status?.trim().toUpperCase();
     if (s === 'COMPLETED') return SessionStatus.COMPLETED;
-    if (!status || s === '') return SessionStatus.UPCOMING;
+    if (s === 'RESCHEDULED' || !status || s === '') return SessionStatus.UPCOMING;
     return SessionStatus.IN_PROGRESS;
 };
 
