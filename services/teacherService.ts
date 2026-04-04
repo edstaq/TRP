@@ -30,26 +30,44 @@ const API_URL = APP_CONFIG.API_ENDPOINTS.TEACHER;
 export const teacherService = {
     async getTeacherByContact(contact: string): Promise<TeacherAPIData | null> {
         try {
-            const response = await fetch(API_URL, {
+            const payload = {
+                action: 'readByContact',
+                contact: contact
+            };
+            const payloadStr = JSON.stringify(payload);
+
+            const response = await fetch(`${API_URL}?data=${encodeURIComponent(payloadStr)}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'text/plain;charset=utf-8', // Google Apps Script often needs text/plain to avoid CORS preflight issues or redirect issues
+                    'Content-Type': 'text/plain;charset=utf-8',
                 },
-                body: JSON.stringify({
-                    action: 'readByContact',
-                    contact: contact
-                })
+                body: payloadStr,
+                cache: 'no-store',
+                redirect: 'follow'
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP Error ${response.status}: Failed to reach server.`);
+            }
+
             const result: ApiResponse<TeacherAPIData> = await response.json();
+
+            if (!result.success) {
+                // Return null ONLY if it specifically says it couldn't find the contact
+                if (result.message === "No record found") {
+                    return null;
+                }
+                // Otherwise throw the error so it displays in the UI (like "Cannot read properties of undefined")
+                throw new Error(`API Error: ${result.message}`);
+            }
 
             if (result.success && result.data) {
                 return result.data;
             }
             return null;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error fetching teacher profile:', error);
-            return null;
+            throw new Error(error.message || 'Network error occurred');
         }
     },
 

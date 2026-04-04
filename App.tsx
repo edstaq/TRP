@@ -122,8 +122,8 @@ const App: React.FC = () => {
     setIsLoading(true);
 
     const formData = new FormData(e.target as HTMLFormElement);
-    const contact = formData.get('contact') as string;
-    const password = formData.get('password') as string;
+    const contact = (formData.get('contact') as string || '').trim();
+    const password = (formData.get('password') as string || '').trim();
 
     if (!contact || !password) {
       setLoginError('Please enter both contact number and password');
@@ -160,8 +160,12 @@ const App: React.FC = () => {
       });
 
       setIsAuthenticated(true);
-    } catch (err) {
-      setLoginError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setLoginError(
+        err.message && err.message.includes('Network') || err.message.includes('Failed') 
+          ? `Connection Error: ${err.message}` 
+          : 'An error occurred. Please try again.'
+      );
       console.error(err);
     } finally {
       setIsLoading(false);

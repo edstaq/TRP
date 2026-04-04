@@ -6,7 +6,7 @@
 export const APP_CONFIG = {
     // Google Apps Script API endpoints
     API_ENDPOINTS: {
-        TEACHER: 'https://script.google.com/macros/s/AKfycbwgrdxwKWHT9HwG4JIa5nkY1BmZTYcLAd94MGaelrhCdFvaF-lSnNmIO9EnQQOPVHkO/exec',
+        TEACHER: 'https://script.google.com/macros/s/AKfycbx7NxYRzKivFWZG-0eu2LyKF_XqiXIKlBCa6S4y-M8nAXNAM5N7Omr6csYrhHrAguTx/exec',
         SUBJECT: 'https://script.google.com/macros/s/AKfycby-zYMWd2uxaSvDwHp336uoz2w0r4UfwD69_Gape9FXOzg4B__L8Jc-fXxq59Y9UQdrRQ/exec',
         AVAILABILITY: 'https://script.google.com/macros/s/AKfycbxmTzvJIW1GIwwQij9SS6gUr3qpDBt5w0K81TllvfEG569wTSf2DbS07bJRweiHZAAQ/exec',
         ALLOCATION: 'https://script.google.com/macros/s/AKfycbwuzCTP0cK91jWUqHhvypJQhbw-X1xFvkCQIWmucsVcJaU3GccGIY8VEV-J02-beYx1qw/exec',
