@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { SUBJECT_CATALOG } from '../data/subjects';
-import { Search, ExternalLink, Calendar, Clock, Filter, RefreshCw, Loader2 } from 'lucide-react';
+import { Search, ExternalLink, Calendar, Clock, Filter, RefreshCw, Loader2, User } from 'lucide-react';
 import { Allocation } from '../types';
 import { allocationService } from '../services/allocationService';
+import { studentService } from '../services/studentService';
 
 interface AllocationDashboardProps {
   teacherId: string;
@@ -61,6 +62,36 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
     ...dataStatuses.filter(s => !preferredOrder.includes(s))
   ];
 
+  const handleViewStudentDashboard = async (studentId: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!studentId) return;
+    
+    const target = e.currentTarget;
+    const originalHtml = target.innerHTML;
+    target.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+    target.style.pointerEvents = 'none';
+    target.style.opacity = '0.5';
+
+    try {
+      const studentData = await studentService.getStudentById(studentId);
+      if (studentData && studentData.Dashboard && studentData.Dashboard !== '-') {
+        let url = studentData.Dashboard;
+        if (!url.startsWith('http')) {
+          url = `https://${url}`;
+        }
+        window.open(url, '_blank');
+      } else {
+        alert("Dashboard link not found for this student.");
+      }
+    } catch (error) {
+      console.error("Error fetching student dashboard:", error);
+      alert("Failed to retrieve student dashboard link.");
+    } finally {
+      target.innerHTML = originalHtml;
+      target.style.pointerEvents = 'auto';
+      target.style.opacity = '1';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">
@@ -104,6 +135,16 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                       <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{name}</span>
                       <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-0.5">{selectedStudents.ids[idx]}</span>
                     </div>
+                    <button 
+                      className="text-slate-400 hover:text-brand-navy p-2 bg-white rounded-xl shadow-sm border border-slate-100 transition-colors"
+                      title="View Student Dashboard"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewStudentDashboard(selectedStudents.ids[idx], e);
+                      }}
+                    >
+                      <User size={16} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -184,6 +225,16 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                                       <span className="text-[8px] font-black text-slate-300 px-1 bg-white rounded border border-slate-50">
                                         {alloc.studentIds[0]}
                                       </span>
+                                      <button 
+                                        className="text-slate-400 hover:text-brand-navy transition-colors ml-1"
+                                        title="View Student Dashboard"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewStudentDashboard(alloc.studentIds[0], e);
+                                        }}
+                                      >
+                                        <User size={12} />
+                                      </button>
                                     </div>
                                   ) : (
                                     <button

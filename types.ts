@@ -152,6 +152,7 @@ export interface StudentLogRequest {
 export interface ApiStudent {
   "Student ID": string;
   "Student Name": string;
+  "Dashboard"?: string;
 }
 
 
