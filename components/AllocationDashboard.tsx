@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SUBJECT_CATALOG } from '../data/subjects';
-import { Search, ExternalLink, Calendar, Clock, Filter, RefreshCw, Loader2, User } from 'lucide-react';
+import { Search, ExternalLink, Calendar, Clock, Filter, RefreshCw, Loader2, LayoutDashboard } from 'lucide-react';
 import { Allocation } from '../types';
 import { allocationService } from '../services/allocationService';
 import { studentService } from '../services/studentService';
@@ -143,7 +143,7 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                         handleViewStudentDashboard(selectedStudents.ids[idx], e);
                       }}
                     >
-                      <User size={16} />
+                      <LayoutDashboard size={16} />
                     </button>
                   </div>
                 ))}
@@ -233,7 +233,7 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                                           handleViewStudentDashboard(alloc.studentIds[0], e);
                                         }}
                                       >
-                                        <User size={12} />
+                                        <LayoutDashboard size={12} />
                                       </button>
                                     </div>
                                   ) : (
