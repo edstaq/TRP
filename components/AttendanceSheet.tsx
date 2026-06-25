@@ -156,6 +156,13 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
       return;
     }
 
+    // Check for Learning Material
+    const hasLearnDocs = session.files.some(f => f.type === 'Learn Docs');
+    if (!hasLearnDocs) {
+      alert('Please upload at least one Learning Material before saving the record.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Prepare bulk logs for API
