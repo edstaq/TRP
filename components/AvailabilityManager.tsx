@@ -44,21 +44,21 @@ const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange, className 
   };
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div className={`flex items-center gap-1 bg-slate-100 border-2 border-slate-300 px-2 py-1 rounded-xl shadow-inner ${className}`}>
       <select
         value={h}
         onChange={(e) => updateTime(e.target.value, m, p)}
-        className="bg-transparent text-xs font-black text-slate-700 outline-none p-1 rounded hover:bg-slate-100 cursor-pointer appearance-none text-center min-w-[30px]"
+        className="bg-transparent text-xs font-black text-slate-900 outline-none p-1 rounded hover:bg-slate-200 cursor-pointer appearance-none text-center min-w-[32px]"
       >
         {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
           <option key={h} value={String(h).padStart(2, '0')}>{String(h).padStart(2, '0')}</option>
         ))}
       </select>
-      <span className="text-xs font-black text-slate-400">:</span>
+      <span className="text-xs font-black text-slate-500">:</span>
       <select
         value={m}
         onChange={(e) => updateTime(h, e.target.value, p)}
-        className="bg-transparent text-xs font-black text-slate-700 outline-none p-1 rounded hover:bg-slate-100 cursor-pointer appearance-none text-center min-w-[30px]"
+        className="bg-transparent text-xs font-black text-slate-900 outline-none p-1 rounded hover:bg-slate-200 cursor-pointer appearance-none text-center min-w-[32px]"
       >
         {Array.from({ length: 12 }, (_, i) => i * 5).map(m => (
           <option key={m} value={String(m).padStart(2, '0')}>{String(m).padStart(2, '0')}</option>
@@ -67,7 +67,7 @@ const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange, className 
       <select
         value={p}
         onChange={(e) => updateTime(h, m, e.target.value)}
-        className="bg-transparent text-[10px] font-black text-slate-500 outline-none p-1 rounded hover:bg-slate-100 cursor-pointer appearance-none ml-1 uppercase tracking-wider"
+        className="bg-transparent text-[11px] font-black text-brand-navy outline-none p-1 rounded hover:bg-slate-200 cursor-pointer appearance-none uppercase tracking-wider"
       >
         <option value="AM">AM</option>
         <option value="PM">PM</option>
@@ -375,108 +375,91 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
     <div className="space-y-8 max-w-5xl mx-auto animate-in fade-in duration-700 pb-20">
 
       {/* Profile Header */}
-      <section className="bg-white rounded-[2.5rem] p-6 md:p-10 border border-slate-100 relative overflow-hidden shadow-sm">
+      <section className="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-slate-300 border-t-4 border-t-brand-navy relative overflow-hidden shadow-md">
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-navy/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-          <div className="w-24 h-24 bg-brand-navy rounded-3xl flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-brand-navy/20">
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8">
+          <div className="w-24 h-24 bg-brand-navy rounded-3xl flex items-center justify-center text-3xl font-black text-white shadow-xl shadow-brand-navy/20 shrink-0">
             {profile.name.charAt(0)}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-1">
-              <h2 className="text-4xl font-black tracking-tight text-brand-navy leading-none">{profile.name}</h2>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-navy/5 border border-brand-navy/10 rounded-full text-[9px] font-black uppercase tracking-widest text-brand-navy">
-                <ShieldCheck size={11} strokeWidth={3} /> INSTITUTIONAL ID: {profile.id}
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 leading-none">{profile.name}</h2>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border-2 border-slate-300 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-800 self-center md:self-auto">
+                <ShieldCheck size={12} strokeWidth={3} className="text-brand-navy" /> ID: {profile.id}
               </span>
               <div
-                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all gap-2 flex items-center ${profile.status === 'Active'
-                  ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'bg-slate-100 text-slate-500 border border-slate-200'
+                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all gap-2 flex items-center self-center md:self-auto ${profile.status === 'Active'
+                  ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300'
+                  : 'bg-slate-100 text-slate-700 border-2 border-slate-300'
                   }`}
               >
-                <div className={`w-2 h-2 rounded-full ${profile.status === 'Active' ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`} />
+                <div className={`w-2.5 h-2.5 rounded-full ${profile.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                 {profile.status || 'Active'}
               </div>
             </div>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-500 font-bold text-[13px] justify-center md:justify-start mt-3">
-              {profile.email && profile.email.includes('@') && <span className="flex items-center gap-1.5"><Mail size={14} className="text-brand-navy/30" /> {profile.email}</span>}
-              <span className="flex items-center gap-1.5"><Phone size={14} className="text-brand-navy/30" /> {profile.mobile}</span>
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-700 font-extrabold text-[13px] justify-center md:justify-start mt-3">
+              {profile.email && profile.email.includes('@') && (
+                <span className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-xl border border-slate-300">
+                  <Mail size={15} className="text-brand-navy" /> {profile.email}
+                </span>
+              )}
+              <span className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-xl border border-slate-300">
+                <Phone size={15} className="text-brand-navy" /> {profile.mobile}
+              </span>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Financial Cards Grid - Hidden for future */}
-      {/* 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center justify-between group transition-all hover:border-green-100">
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">TOTAL EARNINGS</p>
-            <span className="text-3xl font-black text-slate-900 tracking-tight">₹0.00</span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 transition-transform group-hover:scale-110">
-            <TrendingUp size={24} />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center justify-between group transition-all hover:border-brand-navy/10">
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">WITHDRAWALS</p>
-            <span className="text-3xl font-black text-slate-900 tracking-tight">₹0.00</span>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-brand-navy/5 flex items-center justify-center text-brand-navy transition-transform group-hover:scale-110">
-            <ArrowUpRight size={24} />
-          </div>
-        </div>
-      </section>
-      */}
 
       {/* Forms & Requests Section */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 px-2">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Forms & Requests</p>
+          <p className="text-[11px] font-black text-slate-600 uppercase tracking-widest">Forms & Requests</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <a
             href={GOOGLE_FORMS.COMPLAINT}
             target="_blank"
-            className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-red-100 transition-all flex items-center justify-between"
+            rel="noopener noreferrer"
+            className="group bg-white border-2 border-slate-300 p-5 rounded-2xl shadow-sm hover:border-red-400 hover:shadow-md transition-all flex items-center justify-between"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <AlertCircle size={20} />
+              <div className="w-11 h-11 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <AlertCircle size={22} />
               </div>
-              <span className="text-sm font-bold text-slate-700">File Complaint</span>
+              <span className="text-sm font-black text-slate-900">File Complaint</span>
             </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={18} className="text-slate-400 group-hover:text-red-500 group-hover:translate-x-1 transition-transform" />
           </a>
 
           <a
             href={GOOGLE_FORMS.FEEDBACK}
             target="_blank"
-            className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-amber-100 transition-all flex items-center justify-between"
+            rel="noopener noreferrer"
+            className="group bg-white border-2 border-slate-300 p-5 rounded-2xl shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <MessageSquare size={20} />
+              <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <MessageSquare size={22} />
               </div>
-              <span className="text-sm font-bold text-slate-700">Give Feedback</span>
+              <span className="text-sm font-black text-slate-900">Give Feedback</span>
             </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={18} className="text-slate-400 group-hover:text-amber-500 group-hover:translate-x-1 transition-transform" />
           </a>
-
 
           <a
             href={GOOGLE_FORMS.REFER_FRIEND}
             target="_blank"
-            className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-brand-navy/10 transition-all flex items-center justify-between"
+            rel="noopener noreferrer"
+            className="group bg-white border-2 border-slate-300 p-5 rounded-2xl shadow-sm hover:border-brand-navy hover:shadow-md transition-all flex items-center justify-between"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-brand-navy/5 text-brand-navy flex items-center justify-center group-hover:scale-110 transition-transform">
-                <UserPlus size={20} />
+              <div className="w-11 h-11 rounded-xl bg-brand-navy/10 text-brand-navy border border-brand-navy/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <UserPlus size={22} />
               </div>
-              <span className="text-sm font-bold text-slate-700">Refer a Friend</span>
+              <span className="text-sm font-black text-slate-900">Refer a Friend</span>
             </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={18} className="text-slate-400 group-hover:text-brand-navy group-hover:translate-x-1 transition-transform" />
           </a>
         </div>
       </section>
@@ -484,23 +467,23 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
       {/* Security Section */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 px-2">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Security & Privacy</p>
+          <p className="text-[11px] font-black text-slate-600 uppercase tracking-widest">Security & Privacy</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <button
             onClick={() => setIsChangePasswordOpen(true)}
-            className="group bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-brand-navy/10 transition-all flex items-center justify-between w-full text-left"
+            className="group bg-white border-2 border-slate-300 p-5 rounded-2xl shadow-sm hover:border-brand-navy hover:shadow-md transition-all flex items-center justify-between w-full text-left"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-brand-navy/5 text-brand-navy flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Lock size={20} />
+              <div className="w-11 h-11 rounded-xl bg-slate-100 text-brand-navy border border-slate-300 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Lock size={22} />
               </div>
               <div>
-                <span className="text-sm font-bold text-slate-700 block">Change Password</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Update your security credentials</span>
+                <span className="text-sm font-black text-slate-900 block">Change Password</span>
+                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Update your security credentials</span>
               </div>
             </div>
-            <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={18} className="text-slate-400 group-hover:text-brand-navy group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </section>
@@ -514,88 +497,89 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
       )}
 
       {/* Academic Slots Section */}
-      <section className="bg-white rounded-[2.5rem] p-6 md:p-10 border border-slate-100 shadow-sm relative overflow-hidden">
+      <section className="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-slate-300 border-t-4 border-t-brand-navy shadow-md relative overflow-hidden">
         {loadingAvailability && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center">
-            <Loader2 size={32} className="animate-spin text-brand-navy mb-2" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading your schedule...</p>
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center">
+            <Loader2 size={36} className="animate-spin text-brand-navy mb-2" />
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-700">Loading your schedule...</p>
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">Academic Slots</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">DEFINE YOUR WEEKLY AVAILABILITY</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Academic Slots</h3>
+            <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-1">DEFINE YOUR WEEKLY AVAILABILITY</p>
           </div>
           <button
             onClick={handleSaveAvailability}
             disabled={savingAvailability || loadingAvailability}
-            className="bg-brand-navy text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 active:scale-95 transition-all shadow-xl shadow-brand-navy/10 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[180px] justify-center"
+            className="bg-brand-navy text-white px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 active:scale-95 transition-all shadow-md flex items-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
           >
             {savingAvailability ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin" />
             ) : (
-              <Save size={16} />
+              <Save size={18} />
             )}
             {savingAvailability ? 'Committing...' : 'Commit Changes'}
           </button>
         </div>
 
-        <div className="divide-y divide-slate-50 border border-slate-100 rounded-3xl overflow-hidden bg-slate-50/20">
+        <div className="border-2 border-slate-300 divide-y-2 divide-slate-200 rounded-2xl overflow-hidden bg-slate-50">
           {WEEKDAYS.map(day => {
             const dayData = availability.find(a => a.day === day);
             return (
-              <div key={day} className="flex flex-col md:flex-row items-stretch md:items-center transition-colors hover:bg-white group">
-                <div className="md:w-44 px-4 md:px-8 py-5 border-b md:border-b-0 md:border-r border-slate-100 flex items-center justify-between md:justify-start">
-                  <span className="font-black text-slate-800 tracking-tight text-sm uppercase group-hover:text-brand-navy transition-colors">{day}</span>
+              <div key={day} className="flex flex-col md:flex-row items-stretch md:items-center transition-colors hover:bg-slate-100/60 group">
+                <div className="md:w-44 px-5 py-4 border-b-2 md:border-b-0 md:border-r-2 border-slate-300 bg-slate-100/90 flex items-center justify-between md:justify-start">
+                  <span className="font-black text-slate-900 tracking-tight text-sm uppercase group-hover:text-brand-navy transition-colors">{day}</span>
                   <div className="md:hidden">
-                    <button onClick={() => addSlot(day)} className="p-2 text-brand-navy"><Plus size={18} /></button>
+                    <button onClick={() => addSlot(day)} className="p-2 text-brand-navy font-black bg-white rounded-lg border-2 border-slate-300"><Plus size={18} /></button>
                   </div>
                 </div>
 
-                <div className="flex-1 px-4 md:px-8 py-4 flex flex-wrap items-center gap-2 md:gap-3">
+                <div className="flex-1 px-4 md:px-6 py-4 flex flex-wrap items-center gap-3">
                   {dayData?.slots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5 md:gap-3 bg-white border border-slate-200 px-2 md:px-4 py-1.5 md:py-2 rounded-xl shadow-sm hover:border-brand-navy/30 transition-all group/slot">
-                      <div className="flex flex-col md:flex-row items-center gap-1 md:gap-3">
+                    <div key={idx} className="flex items-center gap-2 bg-white border-2 border-slate-300 px-3 py-2 rounded-xl shadow-sm hover:border-brand-navy transition-all">
+                      <div className="flex flex-col md:flex-row items-center gap-2">
                         <div className="flex flex-col items-center md:items-start gap-1">
-                          <span className="text-[8px] font-black text-slate-300 md:hidden uppercase tracking-widest">START</span>
+                          <span className="text-[9px] font-black text-slate-500 md:hidden uppercase tracking-widest">START</span>
                           <TimeSelector
                             value={slot.start}
                             onChange={(val) => updateSlot(day, idx, 'start', val)}
                           />
                         </div>
 
-                        <div className="md:block w-3 h-[2px] bg-slate-200 mx-1 hidden" />
+                        <div className="md:block w-3 h-[2px] bg-slate-400 mx-1 hidden" />
 
-                        <div className="w-full h-[1px] bg-slate-100 my-1 md:hidden" />
+                        <div className="w-full h-[1px] bg-slate-200 my-1 md:hidden" />
 
                         <div className="flex flex-col items-center md:items-start gap-1">
-                          <span className="text-[8px] font-black text-slate-300 md:hidden uppercase tracking-widest">END</span>
+                          <span className="text-[9px] font-black text-slate-500 md:hidden uppercase tracking-widest">END</span>
                           <TimeSelector
                             value={slot.end}
                             onChange={(val) => updateSlot(day, idx, 'end', val)}
                           />
                         </div>
                       </div>
-                      <div className="w-[1px] h-8 bg-slate-100 mx-0.5 md:hidden" />
+                      <div className="w-[1px] h-8 bg-slate-200 mx-1 md:hidden" />
                       <button
                         onClick={() => removeSlot(day, idx)}
-                        className="text-slate-300 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-lg shrink-0"
+                        className="text-slate-400 hover:text-red-600 transition-colors p-1.5 hover:bg-red-50 rounded-lg shrink-0 border border-transparent hover:border-red-200"
+                        title="Remove slot"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   ))}
 
                   {(!dayData || dayData.slots.length === 0) ? (
-                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic py-2">Unassigned</span>
+                    <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest italic py-2">Unassigned</span>
                   ) : null}
 
                   <button
                     onClick={() => addSlot(day)}
-                    className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-brand-navy hover:text-brand-navy transition-all ml-2"
+                    className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-dashed border-slate-400 text-slate-700 text-[11px] font-black uppercase tracking-widest hover:border-brand-navy hover:text-brand-navy hover:bg-white transition-all ml-auto md:ml-2"
                   >
-                    <Plus size={16} /> ADD SLOT
+                    <Plus size={16} strokeWidth={3} /> ADD SLOT
                   </button>
                 </div>
               </div>
@@ -604,19 +588,19 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
         </div>
       </section>
 
-      {/* Academic Subjects Section - Updated to Deck View Format */}
-      <section className="bg-white rounded-[2.5rem] p-6 md:p-10 border border-slate-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12 px-2">
+      {/* Academic Subjects Section */}
+      <section className="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-slate-300 border-t-4 border-t-brand-navy shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 px-2">
           <div>
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">Academic Subjects</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Subjects currently indexed for your profile</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Academic Subjects</h3>
+            <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-1">Subjects currently indexed for your profile</p>
           </div>
           <div className="flex items-center gap-3">
             {isSubjectsDirty && (
               <button
                 onClick={handleSaveSubjects}
                 disabled={savingSubjects || loadingSubjects}
-                className="flex items-center justify-center gap-3 bg-brand-navy text-white h-12 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-brand-navy/10 hover:bg-slate-900 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2.5 bg-brand-navy text-white h-11 px-6 rounded-xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-md hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {savingSubjects ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -628,62 +612,62 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
             )}
             <button
               onClick={onOpenCatalog}
-              className="flex items-center justify-center gap-3 bg-brand-navy/5 text-brand-navy h-12 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all border border-brand-navy/10 hover:bg-brand-navy/10 group"
+              className="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 border-2 border-slate-300 h-11 px-6 rounded-xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
             >
-              <Search size={18} className="group-hover:scale-110 transition-transform" /> SEARCH CATALOG
+              <Search size={18} strokeWidth={2.5} /> SEARCH CATALOG
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {loadingSubjects ? (
-            <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-400">
-              <Loader2 size={40} className="animate-spin mb-4 text-brand-navy" />
-              <p className="text-xs font-black uppercase tracking-widest">Sycnchronizing Catalog...</p>
+            <div className="col-span-full py-16 flex flex-col items-center justify-center text-slate-500">
+              <Loader2 size={36} className="animate-spin mb-3 text-brand-navy" />
+              <p className="text-xs font-black uppercase tracking-widest">Synchronizing Catalog...</p>
             </div>
           ) : detailedSubjects.map(sub => (
             <div
               key={sub?.id}
-              className="group relative bg-[#F8FAFC] border border-slate-100 p-5 rounded-2xl hover:bg-white hover:border-brand-navy/20 transition-all duration-300 flex items-start gap-4 h-auto shadow-sm hover:shadow-xl hover:shadow-brand-navy/5"
+              className="group relative bg-slate-50 border-2 border-slate-300 p-5 rounded-2xl hover:bg-white hover:border-brand-navy hover:shadow-md transition-all duration-300 flex items-start gap-4"
             >
               {/* LEADING (Leading Icon) */}
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-brand-navy border border-slate-100 shadow-sm group-hover:bg-brand-navy group-hover:text-white transition-all shrink-0">
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-brand-navy border-2 border-slate-300 shadow-sm group-hover:bg-brand-navy group-hover:text-white transition-all shrink-0">
                 <BookOpen size={24} />
               </div>
 
               {/* CENTER (Title, Subtitle, Chips) */}
-              <div className="flex-1 min-w-0 pr-10">
+              <div className="flex-1 min-w-0 pr-8">
                 <div className="flex flex-col gap-1 mb-3">
-                  <h4 className="font-black text-slate-800 text-base leading-none group-hover:text-brand-navy transition-colors truncate">
+                  <h4 className="font-black text-slate-900 text-base leading-tight group-hover:text-brand-navy transition-colors truncate">
                     {sub?.name || 'Academic Subject'}
                   </h4>
-                  <p className="text-[11px] font-bold text-slate-400 leading-relaxed line-clamp-1">
+                  <p className="text-[12px] font-bold text-slate-600 leading-relaxed line-clamp-1">
                     {sub?.description || '.'}
                   </p>
                 </div>
 
-                {/* CHIPS AREA - requested format */}
+                {/* CHIPS AREA */}
                 <div className="flex flex-wrap gap-1.5">
                   {sub?.stage && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md uppercase tracking-widest">{sub.stage}</span>
+                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.stage}</span>
                   )}
                   {sub?.department && sub.department !== 'General' && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md uppercase tracking-widest">{sub.department}</span>
+                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.department}</span>
                   )}
                   {sub?.board && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md uppercase tracking-widest">{sub.board}</span>
+                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.board}</span>
                   )}
                   {sub?.level && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md uppercase tracking-widest">{sub.level}</span>
+                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.level}</span>
                   )}
                   {sub?.category && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md uppercase tracking-widest">{sub.category}</span>
+                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.category}</span>
                   )}
                   {sub?.code && (
-                    <span className="text-[8px] font-black px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md uppercase tracking-widest">{sub.code}</span>
+                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-slate-200 border border-slate-400 text-slate-900 rounded-md uppercase tracking-wider">{sub.code}</span>
                   )}
                   {sub?.tags && sub.tags.map((tag, i) => (
-                    <span key={i} className="text-[8px] font-black px-2 py-0.5 bg-blue-50 text-brand-navy rounded-md uppercase tracking-widest">{tag}</span>
+                    <span key={i} className="text-[9px] font-black px-2.5 py-0.5 bg-blue-50 border border-blue-200 text-brand-navy rounded-md uppercase tracking-wider">{tag}</span>
                   ))}
                 </div>
               </div>
@@ -694,7 +678,7 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
                   e.stopPropagation();
                   setSubjects(prev => prev.filter(id => id !== sub?.id));
                 }}
-                className="absolute top-5 right-5 p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-xl group-hover:opacity-100 md:opacity-0"
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-600 transition-colors hover:bg-red-50 rounded-xl border border-transparent hover:border-red-200"
                 title="Remove from profile"
               >
                 <Trash2 size={18} />
@@ -703,12 +687,12 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
           ))}
 
           {subjects.length === 0 && (
-            <div className="col-span-full py-24 border-2 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center text-slate-300 bg-slate-50/30">
-              <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm">
-                <BookOpen size={40} className="opacity-20" />
+            <div className="col-span-full py-16 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-500 bg-slate-50">
+              <div className="w-16 h-16 bg-white rounded-2xl border-2 border-slate-300 flex items-center justify-center mb-4 shadow-sm">
+                <BookOpen size={32} className="text-slate-400" />
               </div>
-              <p className="text-[12px] font-black uppercase tracking-[0.2em]">No Academic Subjects Indexed</p>
-              <button onClick={onOpenCatalog} className="mt-4 text-brand-navy font-black text-[10px] uppercase tracking-widest hover:underline decoration-2 underline-offset-8">Open Catalog</button>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-700">No Academic Subjects Indexed</p>
+              <button onClick={onOpenCatalog} className="mt-3 text-brand-navy font-black text-xs uppercase tracking-widest hover:underline decoration-2 underline-offset-4">Open Catalog</button>
             </div>
           )}
         </div>

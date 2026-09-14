@@ -83,75 +83,75 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ mobile, onClo
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl shadow-slate-900/20 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border-2 border-slate-300 overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header */}
-                <div className="bg-brand-navy p-8 text-white relative">
+                <div className="bg-brand-navy p-6 md:p-8 text-white relative">
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <ShieldCheck size={100} />
                     </div>
                     <button
                         onClick={onClose}
-                        className="absolute top-6 right-6 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+                        className="absolute top-6 right-6 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/20"
                     >
                         <X size={20} />
                     </button>
 
-                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-4 border border-white/30">
                         <Lock size={24} />
                     </div>
                     <h3 className="text-2xl font-black tracking-tight">Access Control</h3>
-                    <p className="text-white/60 font-bold text-xs uppercase tracking-widest mt-1">Update Security Credentials</p>
+                    <p className="text-white/80 font-extrabold text-xs uppercase tracking-widest mt-1">Update Security Credentials</p>
                 </div>
 
                 {/* Body */}
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                     {success ? (
-                        <div className="py-10 text-center animate-in fade-in zoom-in">
-                            <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <div className="py-8 text-center animate-in fade-in zoom-in">
+                            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 border-2 border-emerald-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                                 <CheckCircle2 size={40} />
                             </div>
-                            <h4 className="text-xl font-black text-slate-800 mb-2">Password Updated!</h4>
-                            <p className="text-slate-400 font-bold text-sm">Your new credentials are now active.</p>
+                            <h4 className="text-xl font-black text-slate-900 mb-2">Password Updated!</h4>
+                            <p className="text-slate-600 font-bold text-sm">Your new credentials are now active.</p>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CURRENT PASSWORD</label>
+                                <label className="text-xs font-black text-slate-700 uppercase tracking-widest ml-1">CURRENT PASSWORD</label>
                                 <input
                                     type="password"
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-slate-800 font-bold outline-none focus:ring-4 focus:ring-brand-navy/5 focus:border-brand-navy/20 transition-all placeholder:text-slate-300"
+                                    className="w-full h-12 bg-slate-50 border-2 border-slate-300 rounded-xl px-4 text-slate-900 font-extrabold outline-none focus:bg-white focus:border-brand-navy transition-all placeholder:text-slate-400 text-sm"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NEW PASSWORD</label>
+                                <label className="text-xs font-black text-slate-700 uppercase tracking-widest ml-1">NEW PASSWORD</label>
                                 <input
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-slate-800 font-bold outline-none focus:ring-4 focus:ring-brand-navy/5 focus:border-brand-navy/20 transition-all placeholder:text-slate-300"
+                                    className="w-full h-12 bg-slate-50 border-2 border-slate-300 rounded-xl px-4 text-slate-900 font-extrabold outline-none focus:bg-white focus:border-brand-navy transition-all placeholder:text-slate-400 text-sm"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CONFIRM NEW PASSWORD</label>
+                                <label className="text-xs font-black text-slate-700 uppercase tracking-widest ml-1">CONFIRM NEW PASSWORD</label>
                                 <input
                                     type="password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-slate-800 font-bold outline-none focus:ring-4 focus:ring-brand-navy/5 focus:border-brand-navy/20 transition-all placeholder:text-slate-300"
+                                    className="w-full h-12 bg-slate-50 border-2 border-slate-300 rounded-xl px-4 text-slate-900 font-extrabold outline-none focus:bg-white focus:border-brand-navy transition-all placeholder:text-slate-400 text-sm"
                                 />
                             </div>
 
                             {error && (
-                                <div className="flex items-center gap-2 text-red-500 bg-red-50 p-4 rounded-xl border border-red-100 animate-in fade-in slide-in-from-top-2">
-                                    <AlertCircle size={18} className="shrink-0" />
-                                    <p className="text-xs font-bold leading-tight">{error}</p>
+                                <div className="flex items-center gap-3 text-red-700 bg-red-50 p-4 rounded-xl border-2 border-red-200 animate-in fade-in slide-in-from-top-2">
+                                    <AlertCircle size={20} className="shrink-0 text-red-600" />
+                                    <p className="text-xs font-black leading-tight">{error}</p>
                                 </div>
                             )}
 
@@ -159,7 +159,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ mobile, onClo
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full h-14 bg-brand-navy text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-navy/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 hover:bg-slate-900 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="w-full h-12 bg-brand-navy text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-3 hover:bg-slate-900 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {isLoading ? (
                                         <>

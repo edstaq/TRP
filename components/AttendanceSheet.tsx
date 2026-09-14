@@ -1,19 +1,39 @@
-
-// Fixed missing History icon import to resolve JSX element type error.
 import React, { useState, useEffect, useRef } from 'react';
 import { Session, Student, SessionStatus } from '../types';
-import { Star, CheckCircle, XCircle, ChevronLeft, RefreshCcw, UserCheck, MessageSquarePlus, Users, History, Loader2, BookOpen, Clock, FileUp, StickyNote, FileText, Download, ChevronDown, Key, Check } from 'lucide-react';
+import {
+  Star,
+  CheckCircle,
+  XCircle,
+  ChevronLeft,
+  RefreshCcw,
+  UserCheck,
+  MessageSquarePlus,
+  Users,
+  History,
+  Loader2,
+  BookOpen,
+  Clock,
+  FileUp,
+  StickyNote,
+  FileText,
+  Download,
+  ChevronDown,
+  Key,
+  Check,
+  ArrowRight,
+  MoreVertical
+} from 'lucide-react';
 import { studentLogService } from '../services/studentLogService';
 import { sessionService } from '../services/sessionService';
-import { GOOGLE_FORMS } from '../constants';
 
 interface AttendanceSheetProps {
   session: Session;
+  teacherId?: string;
   onUpdate: (updatedSession: Session) => void;
   onBack: () => void;
 }
 
-const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, onBack }) => {
+const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, teacherId, onUpdate, onBack }) => {
   const [students, setStudents] = useState<Student[]>(session.students);
   const [isLoading, setIsLoading] = useState(false);
   const [globalRate, setGlobalRate] = useState(0);
@@ -24,7 +44,19 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
   const [showFiles, setShowFiles] = useState(false);
   const [isRefreshingFiles, setIsRefreshingFiles] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const optionsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (optionsMenuRef.current && !optionsMenuRef.current.contains(event.target as Node)) {
+        setShowOptionsMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchExistingLogs = async () => {
@@ -59,7 +91,6 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
     window.scrollTo(0, 0);
     fetchExistingLogs();
   }, [session.sessionId]);
-
 
   const isCompleted = session.status === SessionStatus.COMPLETED;
 
@@ -105,11 +136,13 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
   const handleRefreshFiles = async () => {
     setIsRefreshingFiles(true);
     try {
-      // Fetch fresh session data to get updated files
-      const sessions = await sessionService.fetchByTeacherId(session.id.split('_')[0]); // Extract teacher ID
-      const updatedSession = sessions.find(s => s.sessionId === session.sessionId);
-      if (updatedSession) {
-        onUpdate({ ...session, files: updatedSession.files });
+      const targetTeacherId = teacherId || session.id.split('_')[0];
+      if (targetTeacherId) {
+        const sessions = await sessionService.fetchByTeacherId(targetTeacherId);
+        const updatedSession = sessions.find(s => s.sessionId === session.sessionId);
+        if (updatedSession) {
+          onUpdate({ ...session, files: updatedSession.files });
+        }
       }
     } catch (error) {
       console.error('Failed to refresh files:', error);
@@ -149,15 +182,17 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
       return;
     }
 
+    const sessionFiles = session.files || [];
+
     // Check for Session Proof
-    const hasSessionProof = session.files.some(f => f.type === 'Session Proof');
+    const hasSessionProof = sessionFiles.some(f => f.type === 'Session Proof');
     if (!hasSessionProof) {
       alert('Please upload a Session Proof before saving the record.');
       return;
     }
 
     // Check for Learning Material
-    const hasLearnDocs = session.files.some(f => f.type === 'Learn Docs');
+    const hasLearnDocs = sessionFiles.some(f => f.type === 'Learn Docs');
     if (!hasLearnDocs) {
       alert('Please upload at least one Learning Material before saving the record.');
       return;
@@ -206,447 +241,519 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
     }
   };
 
+  const setTimeNow = (setter: (val: string) => void) => {
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setter(timeStr);
+  };
+
+  const sessionFiles = session.files || [];
+  const sessionProofFile = sessionFiles.find(f => f.type === 'Session Proof');
+  const hasSessionProof = !!sessionProofFile;
+  const learnDocs = sessionFiles.filter(f => f.type === 'Learn Docs');
+  const proofUploadUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Session+Proof&entry.579457268=Screenshot`;
+  const learnDocsUploadUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Learn+Docs&entry.579457268=`;
+
+  const hasMultipleStudents = students.length > 1;
+
   return (
     <div
       ref={scrollRef}
-      className="fixed inset-0 md:relative bg-brand-gray md:bg-transparent z-[60] overflow-y-auto custom-scrollbar animate-in slide-in-from-right-full md:slide-in-from-bottom-4 duration-500"
+      className="fixed inset-0 md:relative bg-slate-900/20 md:bg-transparent z-[60] overflow-y-auto custom-scrollbar animate-in slide-in-from-right-full md:slide-in-from-bottom-4 duration-500"
     >
-      <div className="min-h-full flex flex-col md:bg-white md:rounded-3xl md:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] md:border md:border-slate-100">
+      <div className="min-h-full flex flex-col bg-slate-100 md:rounded-[2.5rem] md:shadow-2xl md:shadow-slate-900/15 md:border-2 md:border-slate-200 overflow-hidden">
 
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 p-5 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-brand-navy hover:text-white transition-all">
-              <ChevronLeft size={20} />
+        {/* Sticky High-Contrast Header */}
+        <header className="sticky top-0 z-30 bg-white border-b-2 border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={onBack}
+              className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-brand-navy hover:text-white text-slate-700 transition-all border border-slate-200 flex items-center justify-center shadow-sm shrink-0 active:scale-95"
+            >
+              <ChevronLeft size={20} strokeWidth={2.5} />
             </button>
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h2 className="text-lg font-black text-brand-navy leading-none">
-                  {isCompleted ? 'Historical Report' : 'Session Dashboard'}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight truncate">
+                  {isCompleted ? 'Historical Record' : 'Session Dashboard'}
                 </h2>
-                {/* Session ID Chip - Matching SessionCard Design */}
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(session.sessionId);
                     setCopiedId(true);
                     setTimeout(() => setCopiedId(false), 2000);
                   }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 bg-slate-50 text-green-600 rounded-lg transition-all active:scale-95 hover:bg-green-50 group/copy ${!isCompleted ? 'animate-pulse' : ''}`}
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-xl transition-all active:scale-95 group shadow-sm shrink-0"
                   title="Click to copy Session ID"
                 >
-                  {copiedId ? <Check size={11} /> : <Key size={11} className="text-green-600/40" />}
-                  <span className="text-[9px] font-black font-mono uppercase tracking-widest min-w-[60px] text-center">
+                  {copiedId ? <Check size={12} className="text-emerald-600" /> : <Key size={12} className="text-slate-500 group-hover:text-brand-navy" />}
+                  <span className="text-[10px] sm:text-[11px] font-black font-mono tracking-widest text-brand-navy">
                     {copiedId ? 'COPIED!' : session.sessionId}
                   </span>
                 </button>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{session.className} • {session.subject}</p>
+              <p className="text-[10px] sm:text-[11px] font-extrabold text-slate-600 uppercase tracking-wider mt-0.5 truncate">
+                {session.className} <span className="mx-1 text-slate-400">•</span> {session.subject}
+              </p>
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isLoading}
-            className={`font-black text-[9px] md:text-xs uppercase tracking-widest px-6 py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 ${isCompleted ? 'bg-slate-100 text-slate-400 hover:bg-slate-200' : 'bg-brand-navy text-white hover:bg-slate-900 shadow-brand-navy/10'}`}
-          >
-            {isLoading ? <Loader2 size={14} className="animate-spin" /> : null}
-            {isCompleted ? 'CLOSE' : 'SAVE RECORD'}
-          </button>
+
+          {!isCompleted && (
+            <div className="relative shrink-0 self-end sm:self-center" ref={optionsMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-brand-navy border-2 border-slate-300 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                title="Session Options"
+              >
+                <MoreVertical size={20} />
+              </button>
+
+              {showOptionsMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border-2 border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <a
+                    href={dynamicRescheduleUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setShowOptionsMenu(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-xs font-black text-slate-800 hover:bg-slate-100 hover:text-brand-navy rounded-xl transition-all group"
+                  >
+                    <RefreshCcw size={16} className="text-slate-500 group-hover:text-brand-navy group-hover:rotate-180 transition-all duration-500 shrink-0" />
+                    <span className="uppercase tracking-wider">Reschedule Session</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
         </header>
 
-
-        <div className="flex-1 p-4 md:p-6 lg:p-8 space-y-6 max-w-full overflow-x-hidden relative">
+        {/* Content Body with Soft Slate Canvas Background */}
+        <div className="flex-1 p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 max-w-full overflow-x-hidden relative bg-slate-100/90">
           {isLoading && !isCompleted && (
-            <div className="absolute inset-0 z-50 bg-white/60 backdrop-blur-[2px] flex items-center justify-center rounded-3xl">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 size={32} className="text-brand-navy animate-spin" />
-                <p className="text-[10px] font-black text-brand-navy uppercase tracking-widest">Processing records...</p>
+            <div className="absolute inset-0 z-50 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center rounded-[2.5rem]">
+              <div className="flex flex-col items-center gap-3 p-8 bg-white rounded-3xl shadow-2xl border-2 border-slate-300">
+                <Loader2 size={36} className="text-brand-navy animate-spin" />
+                <p className="text-xs font-black text-brand-navy uppercase tracking-widest">Syncing Records...</p>
               </div>
             </div>
           )}
 
+          {/* Section 1: Session Timing & Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Timing Card */}
+            <div className="bg-white border-2 border-slate-200/90 p-6 rounded-3xl shadow-md hover:shadow-lg transition-all space-y-4 border-t-4 border-t-brand-navy">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-brand-navy text-white flex items-center justify-center shadow-sm">
+                    <Clock size={18} strokeWidth={2.5} />
+                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">SESSION TIMINGS</h3>
+                </div>
+                <span className="text-[10px] font-extrabold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200 uppercase tracking-wider">Required *</span>
+              </div>
 
-          {/* Session Timing Section */}
-          <section className="bg-white border border-slate-200 p-5 md:p-6 rounded-2xl shadow-sm space-y-4">
-            <div className="flex items-center gap-2">
-              <Clock size={14} className="text-brand-navy/40" />
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">SESSION TIMING</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider pl-1">Started At <span className="text-red-500">*</span></label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="time"
-                    value={startedTime}
-                    onChange={(e) => setStartedTime(e.target.value)}
-                    disabled={isCompleted}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all disabled:opacity-60"
-                  />
-                  <button
-                    onClick={() => {
-                      const now = new Date();
-                      const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                      setStartedTime(time);
-                    }}
-                    disabled={isCompleted}
-                    className="h-full aspect-square bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
-                    title="Set to Current Time"
-                  >
-                    <Clock size={18} />
-                  </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Started At */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider pl-1">STARTED AT</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={startedTime}
+                      onChange={(e) => setStartedTime(e.target.value)}
+                      disabled={isCompleted}
+                      className="flex-1 bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-brand-navy focus:bg-white transition-all disabled:opacity-60 shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTimeNow(setStartedTime)}
+                      disabled={isCompleted}
+                      className="h-12 w-12 shrink-0 bg-slate-100 border-2 border-slate-300 hover:bg-brand-navy hover:text-white hover:border-brand-navy rounded-2xl flex items-center justify-center text-slate-700 transition-all active:scale-95 shadow-sm disabled:opacity-50"
+                      title="Set to Current Time"
+                    >
+                      <Clock size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Ended At */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider pl-1">ENDED AT</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={endedTime}
+                      onChange={(e) => setEndedTime(e.target.value)}
+                      disabled={isCompleted}
+                      className="flex-1 bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-brand-navy focus:bg-white transition-all disabled:opacity-60 shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTimeNow(setEndedTime)}
+                      disabled={isCompleted}
+                      className="h-12 w-12 shrink-0 bg-slate-100 border-2 border-slate-300 hover:bg-brand-navy hover:text-white hover:border-brand-navy rounded-2xl flex items-center justify-center text-slate-700 transition-all active:scale-95 shadow-sm disabled:opacity-50"
+                      title="Set to Current Time"
+                    >
+                      <Clock size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider pl-1">Ended At <span className="text-red-500">*</span></label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="time"
-                    value={endedTime}
-                    onChange={(e) => setEndedTime(e.target.value)}
-                    disabled={isCompleted}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all disabled:opacity-60"
-                  />
-                  <button
-                    onClick={() => {
-                      const now = new Date();
-                      const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                      setEndedTime(time);
-                    }}
-                    disabled={isCompleted}
-                    className="h-full aspect-square bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:bg-brand-navy hover:text-white hover:border-brand-navy transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
-                    title="Set to Current Time"
-                  >
-                    <Clock size={18} />
-                  </button>
+            </div>
+
+            {/* Topic Covered Card */}
+            <div className="bg-white border-2 border-slate-200/90 p-6 rounded-3xl shadow-md hover:shadow-lg transition-all space-y-4 border-t-4 border-t-brand-navy">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-brand-navy text-white flex items-center justify-center shadow-sm">
+                    <BookOpen size={18} strokeWidth={2.5} />
+                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">TOPIC COVERED</h3>
                 </div>
+                <span className="text-[10px] font-extrabold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200 uppercase tracking-wider">Required *</span>
               </div>
+
+              <textarea
+                value={topicCovered}
+                onChange={(e) => setTopicCovered(e.target.value)}
+                disabled={isCompleted}
+                placeholder="Enter topic details (e.g., Chapter 4: Algebraic Fractions & Practice Questions)..."
+                className="w-full bg-slate-50 border-2 border-slate-300 rounded-2xl p-4 text-sm font-black text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-navy focus:bg-white transition-all min-h-[96px] resize-none disabled:opacity-60 shadow-inner"
+              />
             </div>
-          </section>
+          </div>
 
-          {/* Session Topic Section */}
-          <section className="bg-white border border-slate-200 p-5 md:p-6 rounded-2xl shadow-sm space-y-3">
-            <div className="flex items-center gap-2">
-              <BookOpen size={14} className="text-brand-navy/40" />
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">TOPIC COVERED <span className="text-red-500">*</span></h3>
-            </div>
-            <textarea
-              value={topicCovered}
-              onChange={(e) => setTopicCovered(e.target.value)}
-              disabled={isCompleted}
-              placeholder="What did you teach today? (e.g., Introduction to Photosynthesis, Quadratic Equations Part 2)"
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all min-h-[80px] resize-none disabled:opacity-60"
-            />
-          </section>
-
-          {/* Learning Materials & Session Files - Combined Section */}
-          <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-
-            {/* Upload Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 md:p-6 bg-slate-50/50">
-              {/* Upload Session Proof */}
-              {(() => {
-                const sessionProofFile = session.files.find(f => f.type === 'Session Proof');
-                const hasSessionProof = !!sessionProofFile;
-                const proofUploadUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Session+Proof&entry.579457268=Screenshot`;
-
-                return (
-                  <a
-                    href={hasSessionProof ? sessionProofFile.uploadFile : proofUploadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`group border p-4 rounded-xl shadow-sm flex items-center gap-3 transition-all ${hasSessionProof
-                      ? 'bg-green-50/50 border-green-200 cursor-pointer hover:bg-green-50 hover:border-green-300'
-                      : 'bg-white border-slate-100 hover:border-orange-200 hover:shadow-md active:scale-[0.98] cursor-pointer'
-                      }`}
-                  >
-                    <div className={`w-10 h-10 rounded-lg border flex items-center justify-center transition-all ${hasSessionProof
-                      ? 'bg-green-100 border-green-200 text-green-600'
-                      : 'bg-orange-50 border-orange-100 text-orange-500 group-hover:bg-orange-500 group-hover:text-white'
-                      }`}>
-                      {hasSessionProof ? <CheckCircle size={18} /> : <FileUp size={18} />}
-                    </div>
-                    <div>
-                      <h4 className={`text-xs font-black leading-tight transition-colors ${hasSessionProof ? 'text-green-700' : 'text-slate-700 group-hover:text-orange-600'
-                        }`}>
-                        {hasSessionProof ? 'Proof Uploaded' : 'Session Proof'}
-                      </h4>
-                      <p className={`text-[9px] font-bold uppercase tracking-wide mt-0.5 ${hasSessionProof ? 'text-green-600/70' : 'text-slate-400'
-                        }`}>
-                        {hasSessionProof ? 'View File' : 'Limit 1 File'}
-                      </p>
-                    </div>
-                  </a>
-                );
-              })()}
-
-              {/* Upload Learning Materials */}
-              <a
-                href={`https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=${encodeURIComponent(session.sessionId)}&entry.47705791=Learn+Docs&entry.579457268=`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group bg-white border border-slate-100 p-4 rounded-xl shadow-sm flex items-center gap-3 hover:border-blue-200 hover:shadow-md transition-all active:scale-[0.98]"
-              >
-                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                  <StickyNote size={18} />
+          {/* Section 2: Uploads & Learning Materials */}
+          <div className="bg-white border-2 border-slate-200/90 rounded-3xl shadow-md p-6 space-y-6 border-t-4 border-t-blue-600">
+            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                  <FileUp size={18} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-700 leading-tight group-hover:text-blue-600 transition-colors">Learning Material</h4>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">Helping Documents</p>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">VERIFICATION & LEARNING MATERIALS</h3>
+                  <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Session proofs and teaching notes</p>
                 </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleRefreshFiles}
+                className={`p-2.5 px-4 rounded-xl border-2 border-slate-200 flex items-center gap-2 text-xs font-black text-slate-800 hover:bg-slate-100 transition-all active:scale-95 shadow-sm ${
+                  isRefreshingFiles ? 'bg-indigo-50 text-indigo-700 border-indigo-300' : 'bg-white'
+                }`}
+                title="Refresh uploaded files list"
+              >
+                <RefreshCcw size={14} className={isRefreshingFiles ? 'animate-spin' : ''} />
+                <span className="hidden sm:inline">Refresh Files</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Session Proof Upload Button */}
+              <a
+                href={hasSessionProof ? sessionProofFile.uploadFile : proofUploadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group border-2 p-5 rounded-2xl shadow-sm flex items-center gap-4 transition-all ${
+                  hasSessionProof
+                    ? 'bg-emerald-50 border-emerald-300 hover:bg-emerald-100/70'
+                    : 'bg-slate-50 border-slate-300 hover:border-orange-400 hover:bg-orange-50/50 hover:shadow-md'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-2xl border-2 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                  hasSessionProof
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-600/30'
+                    : 'bg-white border-orange-300 text-orange-600 shadow-sm'
+                }`}>
+                  {hasSessionProof ? <CheckCircle size={24} /> : <FileUp size={24} />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className={`text-xs font-black uppercase tracking-wider ${hasSessionProof ? 'text-emerald-900' : 'text-slate-900 group-hover:text-orange-600'}`}>
+                      {hasSessionProof ? 'Proof Verified' : 'Session Proof'}
+                    </h4>
+                    {!hasSessionProof && <span className="text-[9px] font-black text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">Required</span>}
+                  </div>
+                  <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mt-0.5 truncate">
+                    {hasSessionProof ? 'Tap to view screenshot' : 'Upload screenshot proof'}
+                  </p>
+                </div>
+                <ArrowRight size={18} className={`shrink-0 transition-transform group-hover:translate-x-1 ${hasSessionProof ? 'text-emerald-700' : 'text-slate-400 group-hover:text-orange-600'}`} />
+              </a>
+
+              {/* Learning Material Upload Button */}
+              <a
+                href={learnDocsUploadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group border-2 border-slate-300 bg-slate-50 hover:bg-blue-50/60 hover:border-blue-400 p-5 rounded-2xl shadow-sm flex items-center gap-4 transition-all hover:shadow-md"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-white border-2 border-blue-300 text-blue-600 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                  <StickyNote size={24} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xs font-black text-slate-900 group-hover:text-blue-700 uppercase tracking-wider">Learning Material</h4>
+                    <span className="text-[9px] font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-200">Required</span>
+                  </div>
+                  <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wide mt-0.5 truncate">
+                    Upload notes or worksheets
+                  </p>
+                </div>
+                <ArrowRight size={18} className="shrink-0 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-1" />
               </a>
             </div>
 
-            {/* Uploaded Files Display - Showing only Learn Docs */}
-            {(() => {
-              const learnDocs = session.files.filter(f => f.type === 'Learn Docs');
-              return learnDocs.length > 0 ? (
-                <>
-                  <button
-                    onClick={() => setShowFiles(!showFiles)}
-                    className="w-full flex items-center justify-between px-5 md:px-6 py-4 bg-white hover:bg-slate-50 transition-all border-t border-slate-200"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-slate-700">Uploaded Files</span>
-                      <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded-full text-[9px] font-black">
-                        {learnDocs.length}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div
-                        role="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRefreshFiles();
-                        }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isRefreshingFiles ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400 hover:bg-brand-navy hover:text-white'}`}
-                        title="Refresh file list"
+            {/* Uploaded Documents List */}
+            {learnDocs.length > 0 ? (
+              <div className="border-2 border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setShowFiles(!showFiles)}
+                  className="w-full flex items-center justify-between px-5 py-4 bg-white hover:bg-slate-100 transition-colors border-b border-slate-200"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileText size={18} className="text-brand-navy" />
+                    <span className="text-xs font-black text-slate-900">Uploaded Documents</span>
+                    <span className="px-2.5 py-0.5 bg-brand-navy text-white rounded-full text-[10px] font-black">
+                      {learnDocs.length}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={20}
+                    className={`text-slate-600 transition-transform duration-300 ${showFiles ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {showFiles && (
+                  <div className="p-4 space-y-2 border-t border-slate-200 bg-white">
+                    {learnDocs.map((file, idx) => (
+                      <a
+                        key={idx}
+                        href={file.uploadFile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 rounded-xl transition-all group"
                       >
-                        <RefreshCcw size={14} className={isRefreshingFiles ? 'animate-spin' : ''} />
-                      </div>
-                      <ChevronDown
-                        size={18}
-                        className={`text-slate-400 transition-transform duration-300 ${showFiles ? 'rotate-180' : ''}`}
-                      />
-                    </div>
-                  </button>
-
-                  {showFiles && (
-                    <div className="px-5 md:px-6 pb-5 md:pb-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-white">
-                      {learnDocs.map((file, idx) => (
-                        <a
-                          key={idx}
-                          href={file.uploadFile}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 hover:border-blue-200 transition-all group"
-                        >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
-                              <FileText size={18} className="text-white" />
-                            </div>
-                            <div className="flex flex-col min-w-0 flex-1">
-                              <span className="text-sm font-black text-slate-800 truncate">
-                                {file.fileName}
-                              </span>
-                              <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">
-                                Learn Document
-                              </span>
-                            </div>
-                          </div>
-                          <Download size={16} className="text-blue-600 group-hover:translate-y-0.5 transition-transform flex-shrink-0" />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="px-5 md:px-6 py-8 text-center border-t border-slate-200 relative">
-                  <div className="absolute top-4 right-4">
-                    <button
-                      onClick={handleRefreshFiles}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isRefreshingFiles ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-50 text-slate-400 hover:bg-brand-navy hover:text-white'}`}
-                      title="Refresh file list"
-                    >
-                      <RefreshCcw size={14} className={isRefreshingFiles ? 'animate-spin' : ''} />
-                    </button>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <FileText size={20} className="text-blue-600 shrink-0" />
+                          <span className="text-xs font-black text-slate-900 truncate">{file.fileName}</span>
+                        </div>
+                        <Download size={18} className="text-slate-500 group-hover:text-blue-600 shrink-0" />
+                      </a>
+                    ))}
                   </div>
-                  <FileText size={32} className="mx-auto text-slate-200 mb-2" />
-                  <p className="text-xs font-bold text-slate-400">No learning materials yet</p>
-                  <p className="text-[9px] text-slate-300 mt-1">Upload documents using the blue button above</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          {/* Section 3: Bulk Actions (ONLY DISPLAYED IF MULTIPLE STUDENTS EXIST) */}
+          {!isCompleted && hasMultipleStudents && (
+            <div className="bg-white border-2 border-slate-200/90 p-6 rounded-3xl shadow-md space-y-5 animate-in fade-in duration-300 border-t-4 border-t-purple-600">
+              <div className="flex items-center justify-between border-b-2 border-slate-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-sm">
+                    <Users size={18} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">BULK ACTIONS & GLOBAL SETTINGS</h3>
+                    <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Quickly apply ratings or notes to all students</p>
+                  </div>
                 </div>
-              );
-            })()}
-          </section>
+              </div>
 
-          {/* Bulk Action & Stats Container */}
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {!isCompleted ? (
-              <div className="lg:col-span-9 bg-white border border-slate-200 p-5 md:p-6 rounded-2xl shadow-sm flex flex-col xl:flex-row gap-6 xl:gap-10">
-                {/* Bulk Status */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Users size={12} className="text-slate-400" />
-                    <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400">BULK STATUS</h3>
-                  </div>
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+                {/* Mark All Status */}
+                <div className="lg:col-span-3 space-y-2">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">MARK ATTENDANCE</label>
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={() => setAllAttendance(true)}
-                      className="flex-1 h-10 px-4 rounded-xl bg-green-50 text-green-600 border border-green-100 text-[9px] font-black uppercase hover:bg-green-100 transition-colors"
+                      className="flex-1 h-11 rounded-2xl bg-emerald-100 text-emerald-900 border-2 border-emerald-300 text-[10px] font-black uppercase tracking-wider hover:bg-emerald-200 transition-all active:scale-95 shadow-sm"
                     >
-                      PRESENT
+                      ALL PRESENT
                     </button>
                     <button
+                      type="button"
                       onClick={() => setAllAttendance(false)}
-                      className="flex-1 h-10 px-4 rounded-xl bg-slate-50 text-slate-400 border border-slate-100 text-[9px] font-black uppercase hover:bg-slate-100 transition-colors"
+                      className="flex-1 h-11 rounded-2xl bg-slate-100 text-slate-700 border-2 border-slate-300 text-[10px] font-black uppercase tracking-wider hover:bg-slate-200 transition-all active:scale-95 shadow-sm"
                     >
-                      ABSENT
+                      ALL ABSENT
                     </button>
                   </div>
                 </div>
 
                 {/* Bulk Rating */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <UserCheck size={12} className="text-slate-400" />
-                    <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400">BULK RATING</h3>
-                  </div>
-                  <div className="flex gap-1.5">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <button
-                        key={star}
-                        onClick={() => setGlobalRate(star)}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border ${globalRate >= star
-                          ? 'bg-brand-navy border-brand-navy text-white shadow-lg shadow-brand-navy/10'
-                          : 'bg-white border-slate-100 text-slate-200 hover:border-slate-300'
+                <div className="lg:col-span-4 space-y-2">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">GLOBAL STAR RATING</label>
+                  <div className="flex gap-1.5 p-1 bg-slate-50 border-2 border-slate-300 rounded-2xl shadow-inner">
+                    {[1, 2, 3, 4, 5].map(star => {
+                      const isSelected = globalRate >= star;
+                      return (
+                        <button
+                          type="button"
+                          key={star}
+                          onClick={() => setGlobalRate(star)}
+                          className={`flex-1 h-9 rounded-xl flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'bg-amber-400 text-amber-950 font-black shadow-md'
+                              : 'text-slate-400 hover:text-amber-500 hover:bg-slate-200/60'
                           }`}
-                      >
-                        <Star size={16} fill={globalRate >= star ? "currentColor" : "none"} />
-                      </button>
-                    ))}
+                          title={`Global Rate ${star} Star${star > 1 ? 's' : ''}`}
+                        >
+                          <Star
+                            size={16}
+                            className={isSelected ? 'text-amber-950 fill-amber-950' : 'text-slate-400 fill-slate-100'}
+                            strokeWidth={2}
+                          />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Bulk Comment */}
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <MessageSquarePlus size={12} className="text-slate-400" />
-                    <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400">BULK COMMENT</h3>
-                  </div>
+                <div className="lg:col-span-5 space-y-2">
+                  <label className="text-[10px] font-black text-slate-600 uppercase tracking-wider">GLOBAL OBSERVATION NOTE</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={globalComment}
                       onChange={(e) => setGlobalComment(e.target.value)}
-                      placeholder="Observation for all..."
-                      className="flex-1 bg-white border border-slate-200 rounded-xl px-4 text-xs font-bold placeholder:text-slate-300 outline-none focus:border-brand-navy/20 transition-all"
+                      placeholder="Observation note for present students..."
+                      className="flex-1 bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 text-xs font-black text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-navy focus:bg-white transition-all shadow-inner"
                     />
                     <button
+                      type="button"
                       onClick={applyGlobalSettings}
-                      className="bg-brand-navy text-white h-10 px-5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-brand-navy/10 active:scale-95"
+                      className="h-11 px-6 rounded-2xl bg-brand-navy text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all active:scale-95 shadow-md shrink-0"
                     >
                       APPLY
                     </button>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="lg:col-span-9 bg-white border border-slate-200 p-6 rounded-2xl flex items-center gap-5">
-                <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
-                  <History size={28} />
+            </div>
+          )}
+
+          {/* Section 4: Student Attendance Roll */}
+          <div className="bg-white border-2 border-slate-200/90 rounded-3xl shadow-md overflow-hidden border-t-4 border-t-brand-navy">
+            <div className="p-6 border-b-2 border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-brand-navy text-white flex items-center justify-center shadow-sm">
+                  <UserCheck size={18} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-800 tracking-tight">Record Locked</h3>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">HISTORICAL DATA • VIEW ONLY</p>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">STUDENT ATTENDANCE & EVALUATION</h3>
+                  <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Mark attendance, rate engagement, and add notes</p>
                 </div>
               </div>
-            )}
 
-            {/* Presence Summary */}
-            <div className="lg:col-span-3 bg-white border border-slate-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-40 group-hover:rotate-180 transition-transform duration-700">
-                <RefreshCcw size={12} className="text-slate-300" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-[9px] font-black text-slate-300 uppercase tracking-widest">ENROLLMENT</h3>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-5xl font-black text-slate-800 tracking-tighter leading-none">{students.filter(s => s.attended).length}</span>
-                  <span className="text-lg font-bold text-slate-300">/ {students.length}</span>
-                </div>
-              </div>
-              <div className="w-full bg-slate-50 h-2 rounded-full mt-4 overflow-hidden">
-                <div
-                  className="h-full bg-brand-navy transition-all duration-1000 ease-out"
-                  style={{ width: `${(students.filter(s => s.attended).length / students.length) * 100}%` }}
-                />
+              {/* Presence Pill */}
+              <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-2xl shadow-sm">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">PRESENT:</span>
+                <span className="text-xs font-black text-brand-navy">
+                  {students.filter(s => s.attended).length} / {students.length}
+                </span>
               </div>
             </div>
-          </section>
 
-          {/* Student Roll Table */}
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
-                  <tr className="bg-slate-50/50">
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">STUDENT</th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">STATUS</th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">RATING <span className="text-red-500">*</span></th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest w-[35%]">OBSERVATIONS</th>
+                  <tr className="bg-slate-100 border-b-2 border-slate-200">
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">STUDENT</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest text-center">ATTENDANCE STATUS</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">RATING <span className="text-red-600">*</span></th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest w-[38%]">OBSERVATIONS & FEEDBACK</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y-2 divide-slate-100">
                   {students.map((student) => (
                     <tr
                       key={student.id}
-                      className={`transition-all duration-300 group ${student.attended ? 'bg-white' : 'bg-slate-50/10'}`}
+                      className={`transition-colors ${student.attended ? 'bg-white' : 'bg-slate-50'}`}
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs transition-all duration-500 ${student.attended ? (isCompleted ? 'bg-slate-300' : 'bg-brand-navy') + ' text-white shadow-md' : 'bg-slate-100 text-slate-300'}`}>
+                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm transition-all shadow-sm ${
+                            student.attended
+                              ? (isCompleted ? 'bg-slate-300 text-slate-700' : 'bg-brand-navy text-white')
+                              : 'bg-slate-200 text-slate-500'
+                          }`}>
                             {student.name.charAt(0)}
                           </div>
                           <div>
-                            <p className={`font-black tracking-tight text-base transition-colors ${student.attended ? 'text-slate-800' : 'text-slate-300'}`}>{student.name}</p>
-                            <p className="text-[9px] font-bold text-slate-400/50 uppercase tracking-widest mt-0.5">REG: {student.id}</p>
+                            <p className={`font-black tracking-tight text-base ${student.attended ? 'text-slate-900' : 'text-slate-500'}`}>{student.name}</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">ID: {student.id}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center">
+
+                      <td className="px-6 py-5 text-center">
                         <button
+                          type="button"
                           onClick={() => toggleAttendance(student.id)}
                           disabled={isCompleted}
-                          className={`inline-flex h-9 px-4 rounded-xl items-center gap-1.5 text-[9px] font-black uppercase transition-all duration-300 border ${student.attended
-                            ? 'bg-green-50 text-green-600 border-green-100 shadow-sm'
-                            : 'bg-white text-slate-300 border-slate-100'
-                            } ${!isCompleted ? 'hover:scale-105 active:scale-95' : ''}`}
+                          className={`inline-flex h-10 px-5 rounded-2xl items-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all border-2 ${
+                            student.attended
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-sm'
+                              : 'bg-slate-100 text-slate-500 border-slate-300'
+                          } ${!isCompleted ? 'hover:scale-105 active:scale-95' : ''}`}
                         >
-                          {student.attended ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                          {student.attended ? <CheckCircle size={15} /> : <XCircle size={15} />}
                           {student.attended ? 'PRESENT' : 'ABSENT'}
                         </button>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className={`flex gap-1 transition-all duration-500 ${student.attended ? 'opacity-100' : 'opacity-10 grayscale pointer-events-none'}`}>
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <button
-                              key={star}
-                              onClick={() => updateRate(student.id, star)}
-                              disabled={isCompleted}
-                              className={`p-0.5 transition-all duration-200 ${!isCompleted ? 'hover:scale-110' : ''} ${student.listeningRate >= star ? (isCompleted ? 'text-slate-300' : 'text-brand-navy') : 'text-slate-100'}`}
-                            >
-                              <Star size={20} fill={student.listeningRate >= star ? "currentColor" : "none"} strokeWidth={1.5} />
-                            </button>
-                          ))}
+
+                      <td className="px-6 py-5">
+                        <div className={`flex items-center gap-3 transition-opacity ${student.attended ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                          <div className="flex items-center gap-1 bg-slate-50 border-2 border-slate-300 px-2.5 py-1.5 rounded-2xl shadow-inner">
+                            {[1, 2, 3, 4, 5].map(star => {
+                              const isSelected = student.listeningRate >= star;
+                              return (
+                                <button
+                                  type="button"
+                                  key={star}
+                                  onClick={() => updateRate(student.id, star)}
+                                  disabled={isCompleted}
+                                  className={`p-1 rounded-lg transition-all ${!isCompleted ? 'hover:scale-125 active:scale-95' : ''}`}
+                                  title={`Rate ${star} Star${star > 1 ? 's' : ''}`}
+                                >
+                                  <Star
+                                    size={20}
+                                    className={
+                                      isSelected
+                                        ? 'text-amber-500 fill-amber-400 drop-shadow-sm'
+                                        : 'text-slate-400 fill-slate-100 hover:text-amber-400'
+                                    }
+                                    strokeWidth={2}
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <span className={`text-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-wider shrink-0 border ${
+                            student.listeningRate > 0
+                              ? 'bg-amber-100 text-amber-900 border-amber-300'
+                              : 'bg-red-50 text-red-600 border-red-200'
+                          }`}>
+                            {student.listeningRate > 0 ? `${student.listeningRate} / 5 ★` : 'Required *'}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className={`transition-all duration-500 ${student.attended ? 'opacity-100' : 'opacity-10 pointer-events-none'}`}>
+
+                      <td className="px-6 py-5">
+                        <div className={`transition-opacity ${student.attended ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
                           <input
                             type="text"
                             value={student.review}
                             onChange={(e) => updateReview(student.id, e.target.value)}
                             disabled={isCompleted}
-                            placeholder="Add note..."
-                            className="w-full bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-slate-300 focus:ring-4 focus:ring-brand-navy/5 placeholder:text-slate-300 transition-all disabled:opacity-70"
+                            placeholder="Add specific observation or feedback..."
+                            className="w-full bg-slate-50 border-2 border-slate-300 px-4 py-3 rounded-2xl text-xs font-black text-slate-900 outline-none focus:border-brand-navy focus:bg-white placeholder:text-slate-400 transition-all disabled:opacity-70 shadow-inner"
                           />
                         </div>
                       </td>
@@ -655,25 +762,23 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({ session, onUpdate, on
                 </tbody>
               </table>
             </div>
-          </section>
+          </div>
 
-
-
-          {/* Reschedule Button - Inline Bottom Right Alignment */}
-          {!isCompleted && (
-            <div className="flex justify-end pt-4 pb-8">
-              <a
-                href={dynamicRescheduleUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 p-3 px-5 bg-white border border-slate-100 text-slate-400 rounded-2xl hover:text-brand-navy hover:border-brand-navy/10 hover:bg-slate-50 transition-all active:scale-95 group"
-                title="Request session reschedule"
-              >
-                <RefreshCcw size={11} className="group-hover:rotate-180 transition-transform duration-700 font-bold" />
-                <span className="text-[9px] font-extrabold uppercase tracking-[0.2em]">Reschedule Session?</span>
-              </a>
-            </div>
-          )}
+          {/* Bottom Action Bar: Primary Save / Close Record Button */}
+          <div className="flex justify-end pt-4 pb-8">
+            <button
+              onClick={handleSave}
+              disabled={isLoading}
+              className={`w-full sm:w-auto font-black text-sm uppercase tracking-widest px-8 sm:px-10 py-4 rounded-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+                isCompleted
+                  ? 'bg-slate-200 text-slate-700 hover:bg-slate-300 border-2 border-slate-300'
+                  : 'bg-brand-navy text-white hover:bg-slate-900 shadow-brand-navy/30 hover:shadow-2xl'
+              }`}
+            >
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : null}
+              {isCompleted ? 'CLOSE RECORD' : 'SAVE RECORD'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

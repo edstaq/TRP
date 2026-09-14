@@ -20,11 +20,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
   ];
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-brand-gray">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-100">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white text-slate-900 p-6 flex-col sticky top-0 h-screen border-r border-slate-200">
-        <div className="mb-10 flex items-center gap-3 px-2">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-brand-navy/10 overflow-hidden border border-slate-100">
+      <aside className="hidden md:flex w-64 bg-white text-slate-900 p-6 flex-col sticky top-0 h-screen border-r-2 border-slate-300 shadow-sm z-30">
+        <div className="mb-8 flex items-center gap-3 px-2 pb-6 border-b-2 border-slate-200">
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md overflow-hidden border-2 border-slate-300 shrink-0">
             <img
               src="/assets/brand-logo.png"
               alt="Logo"
@@ -36,52 +36,57 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
             />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-brand-navy leading-none">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
-            <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest mt-1">{APP_CONFIG.PORTAL_INFO.TAGLINE}</p>
+            <h1 className="text-lg font-black tracking-tight text-slate-900 leading-tight">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
+            <p className="text-slate-600 text-[9px] font-extrabold uppercase tracking-widest mt-0.5">{APP_CONFIG.PORTAL_INFO.TAGLINE}</p>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${activeTab === item.id
-                ? 'bg-brand-navy text-white shadow-xl shadow-brand-navy/30'
-                : 'text-slate-400 hover:text-brand-navy hover:bg-brand-gray/50'
-                }`}
-            >
-              <div className={activeTab === item.id ? 'text-white' : 'text-slate-400 group-hover:text-brand-navy transition-colors'}>
-                {item.icon}
-              </div>
-              <span className="font-bold text-sm tracking-tight">{item.label}</span>
-            </button>
-          ))}
+        <nav className="flex-1 space-y-2">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group border-2 ${isActive
+                  ? 'bg-brand-navy text-white border-brand-navy shadow-md'
+                  : 'bg-white text-slate-800 border-slate-200 hover:border-slate-400 hover:bg-slate-100 hover:text-brand-navy'
+                  }`}
+              >
+                <div className={isActive ? 'text-white' : 'text-slate-700 group-hover:text-brand-navy transition-colors'}>
+                  {item.icon}
+                </div>
+                <span className={`text-sm tracking-tight ${isActive ? 'font-black' : 'font-extrabold'}`}>{item.label}</span>
+              </button>
+            );
+          })}
         </nav>
 
-        <a
-          href={APP_CONFIG.GOOGLE_FORMS.SUPPORT_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 px-4 py-4 text-slate-400 hover:text-green-600 transition-all font-bold group mt-auto"
-        >
-          <MessageCircle size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm">Support</span>
-        </a>
+        <div className="pt-4 space-y-1 border-t-2 border-slate-200 mt-auto">
+          <a
+            href={APP_CONFIG.GOOGLE_FORMS.SUPPORT_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-3 text-slate-800 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl border-2 border-transparent hover:border-emerald-200 transition-all font-black group text-sm"
+          >
+            <MessageCircle size={18} className="text-slate-600 group-hover:text-emerald-600 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Support</span>
+          </a>
 
-        <button
-          onClick={onLogout}
-          className="flex items-center gap-3 px-4 py-4 text-slate-400 hover:text-red-500 transition-all font-bold group"
-        >
-          <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm">Sign Out</span>
-        </button>
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-800 hover:text-red-700 hover:bg-red-50 rounded-xl border-2 border-transparent hover:border-red-200 transition-all font-black group text-sm"
+          >
+            <LogOut size={18} className="text-slate-600 group-hover:text-red-600 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100 sticky top-0 z-30">
+      <header className="md:hidden flex items-center justify-between px-5 py-3.5 bg-white border-b-2 border-slate-300 sticky top-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 overflow-hidden">
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border-2 border-slate-300 overflow-hidden shrink-0">
             <img
               src="/assets/brand-logo.png"
               alt="Logo"
@@ -92,10 +97,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
               }}
             />
           </div>
-          <h1 className="font-black text-brand-navy tracking-tight text-lg">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
+          <h1 className="font-black text-slate-900 tracking-tight text-lg">{APP_CONFIG.PORTAL_INFO.NAME}</h1>
         </div>
-        <button onClick={onLogout} className="text-slate-400 p-2 hover:bg-slate-50 rounded-full transition-colors">
-          <LogOut size={20} />
+        <button onClick={onLogout} className="text-slate-700 p-2 hover:bg-slate-100 rounded-xl border border-slate-300 transition-colors" title="Sign Out">
+          <LogOut size={18} />
         </button>
       </header>
 
@@ -107,22 +112,25 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass px-2 py-3 safe-bottom z-40 flex justify-around items-center shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1 min-w-[50px] transition-all duration-300 ${activeTab === item.id ? 'text-brand-navy scale-105' : 'text-slate-400'
-              }`}
-          >
-            <div className={`p-1.5 rounded-xl transition-all ${activeTab === item.id ? 'bg-brand-navy/5' : ''}`}>
-              {item.icon}
-            </div>
-            <span className={`text-[8px] font-extrabold tracking-tight ${activeTab === item.id ? 'opacity-100' : 'opacity-60'}`}>
-              {item.label}
-            </span>
-          </button>
-        ))}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 px-3 py-2.5 safe-bottom z-40 flex justify-around items-center shadow-lg">
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center gap-1 min-w-[54px] py-1 px-2 rounded-xl transition-all duration-200 ${isActive ? 'text-brand-navy font-black bg-slate-100 border border-slate-300' : 'text-slate-700 font-extrabold hover:text-slate-900'
+                }`}
+            >
+              <div className="shrink-0">
+                {item.icon}
+              </div>
+              <span className={`text-[10px] uppercase tracking-wider ${isActive ? 'font-black text-brand-navy' : 'font-extrabold text-slate-700'}`}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );

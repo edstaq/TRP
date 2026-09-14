@@ -110,19 +110,19 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
       {selectedStudents && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
           <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300"
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setSelectedStudents(null)}
           />
-          <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
+          <div className="relative w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-2 border-slate-300">
             <div className="p-8 space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h4 className="text-xl font-black text-slate-900 tracking-tight">Assigned Students</h4>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Class Roster</p>
+                  <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-0.5">Class Roster</p>
                 </div>
                 <button
                   onClick={() => setSelectedStudents(null)}
-                  className="w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all group"
+                  className="w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900 hover:bg-slate-200 transition-all group"
                 >
                   <Filter size={18} className="rotate-45 group-hover:scale-110 transition-transform" />
                 </button>
@@ -130,13 +130,13 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
 
               <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                 {selectedStudents.names.map((name, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-brand-navy/20 transition-all">
+                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 border-2 border-slate-200 rounded-2xl group hover:border-brand-navy transition-all shadow-sm">
                     <div className="flex flex-col">
-                      <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{name}</span>
-                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-0.5">{selectedStudents.ids[idx]}</span>
+                      <span className="text-sm font-black text-slate-900 uppercase tracking-tight">{name}</span>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{selectedStudents.ids[idx]}</span>
                     </div>
                     <button 
-                      className="text-slate-400 hover:text-brand-navy p-2 bg-white rounded-xl shadow-sm border border-slate-100 transition-colors"
+                      className="text-slate-600 hover:text-brand-navy p-2 bg-white rounded-xl shadow-sm border-2 border-slate-200 hover:border-brand-navy transition-colors"
                       title="View Student Dashboard"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -151,7 +151,7 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
 
               <button
                 onClick={() => setSelectedStudents(null)}
-                className="w-full py-4 bg-brand-navy text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-brand-navy/20 active:scale-[0.98] transition-all"
+                className="w-full py-4 bg-brand-navy text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand-navy/20 active:scale-[0.98] transition-all hover:bg-slate-900"
               >
                 Close Roster
               </button>
@@ -162,16 +162,16 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Allocations</h2>
-          <p className="text-slate-500 font-bold mt-1">Institutional teacher-to-student mapping logs</p>
+          <p className="text-slate-600 font-extrabold mt-1">Institutional teacher-to-student mapping logs</p>
         </div>
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
             placeholder="Search allocations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold outline-none focus:ring-4 focus:ring-brand-navy/5 focus:border-brand-navy/20 transition-all"
+            className="w-full pl-10 pr-4 py-3 rounded-2xl border-2 border-slate-300 bg-white text-sm font-black text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-navy transition-all shadow-sm"
           />
         </div>
       </div>
@@ -183,63 +183,63 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
 
           return (
             <div key={status} className="space-y-4">
-              <div className="flex items-center gap-2 px-2">
-                <div className={`w-2 h-2 rounded-full ${status === 'Active' ? 'bg-green-500' :
-                  status === 'Hold' ? 'bg-amber-500' : 'bg-slate-400'
+              <div className="flex items-center gap-2.5 px-2">
+                <div className={`w-3 h-3 rounded-full ${status === 'Active' ? 'bg-emerald-500 shadow-sm' :
+                  status === 'Hold' ? 'bg-amber-500 shadow-sm' : 'bg-slate-500'
                   }`} />
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{status} Allocations</h3>
-                <span className="ml-auto text-[10px] font-black text-slate-300 bg-slate-100 px-2 py-0.5 rounded-full">{allocations.length}</span>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">{status} Allocations</h3>
+                <span className="ml-auto text-[11px] font-black text-slate-700 bg-slate-200 px-2.5 py-0.5 rounded-full border border-slate-300">{allocations.length}</span>
               </div>
 
-              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-3xl border-2 border-slate-300 shadow-md overflow-hidden border-t-4 border-t-brand-navy">
                 <div className="w-full overflow-x-auto custom-scrollbar">
                   <table className="w-full min-w-[900px] text-left border-collapse table-fixed">
                     <thead>
-                      <tr className="bg-slate-50/50">
-                        <th className="w-[32%] px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">ID / CLASS / STUDENT</th>
-                        <th className="w-[28%] px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SUBJECT / LINK</th>
-                        <th className="w-[28%] px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SCHEDULE / DAYS</th>
-                        <th className="w-[12%] px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">STATUS</th>
+                      <tr className="bg-slate-100 border-b-2 border-slate-200">
+                        <th className="w-[32%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">ID / CLASS / STUDENT</th>
+                        <th className="w-[28%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">SUBJECT / LINK</th>
+                        <th className="w-[28%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">SCHEDULE / DAYS</th>
+                        <th className="w-[12%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest text-center">STATUS</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y-2 divide-slate-100">
                       {allocations.map((alloc) => {
                         const subject = SUBJECT_CATALOG.find(s => s.id === alloc.subjectId);
                         const studentNames = getStudentNames(alloc.studentIds, alloc.studentNames);
                         return (
                           <tr key={alloc.assignId} className="hover:bg-slate-50 transition-colors group">
-                            <td className="px-4 py-4 align-top">
+                            <td className="px-5 py-4 align-top">
                               <div className="flex flex-col gap-1.5 overflow-hidden">
-                                <span className="text-[10px] font-black text-brand-navy">{alloc.assignId}</span>
+                                <span className="text-[11px] font-black text-brand-navy font-mono">{alloc.assignId}</span>
 
-                                <span className="text-[10px] font-bold text-slate-500 leading-tight truncate w-full" title={alloc.classRoomId}>
+                                <span className="text-xs font-black text-slate-900 leading-tight truncate w-full" title={alloc.classRoomId}>
                                   {alloc.classRoomId}
                                 </span>
 
                                 <div className="mt-1">
                                   {studentNames.length === 1 ? (
-                                    <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg w-fit group-hover:bg-white group-hover:border-slate-200 transition-colors">
-                                      <span className="text-[10px] text-slate-800 font-black uppercase tracking-tight truncate max-w-[150px]">
+                                    <div className="flex items-center gap-1.5 bg-slate-100 border-2 border-slate-200 px-2.5 py-1 rounded-xl w-fit group-hover:bg-white transition-colors">
+                                      <span className="text-[10px] text-slate-900 font-black uppercase tracking-tight truncate max-w-[150px]">
                                         {studentNames[0]}
                                       </span>
-                                      <span className="text-[8px] font-black text-slate-300 px-1 bg-white rounded border border-slate-50">
+                                      <span className="text-[8px] font-black text-slate-500 px-1 bg-white rounded border border-slate-200">
                                         {alloc.studentIds[0]}
                                       </span>
                                       <button 
-                                        className="text-slate-400 hover:text-brand-navy transition-colors ml-1"
+                                        className="text-slate-500 hover:text-brand-navy transition-colors ml-1"
                                         title="View Student Dashboard"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleViewStudentDashboard(alloc.studentIds[0], e);
                                         }}
                                       >
-                                        <LayoutDashboard size={12} />
+                                        <LayoutDashboard size={13} />
                                       </button>
                                     </div>
                                   ) : (
                                     <button
                                       onClick={() => setSelectedStudents({ names: studentNames, ids: alloc.studentIds })}
-                                      className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-lg text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                      className="flex items-center gap-2 bg-indigo-50 border-2 border-indigo-200 px-3 py-1 rounded-xl text-indigo-700 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95"
                                     >
                                       <span className="text-[10px] font-black uppercase tracking-[0.1em] whitespace-nowrap">
                                         {studentNames.length} Students
@@ -250,48 +250,48 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-4 align-top">
+                            <td className="px-5 py-4 align-top">
                               <div className="flex flex-col gap-1 overflow-hidden">
-                                <span className="text-[10px] font-black text-slate-700 leading-tight line-clamp-2">
+                                <span className="text-xs font-black text-slate-900 leading-snug line-clamp-2">
                                   {alloc.subjectLabel || subject?.name || alloc.subjectId}
                                 </span>
                                 <a
                                   href={alloc.meetLink.startsWith('http') ? alloc.meetLink : `https://${alloc.meetLink}`}
                                   target="_blank"
-                                  className="text-indigo-600 hover:text-indigo-800 text-[10px] font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform w-fit"
+                                  className="text-indigo-700 hover:text-indigo-900 text-[10px] font-black flex items-center gap-1 group-hover:translate-x-0.5 transition-transform w-fit"
                                 >
                                   Meeting Room <ExternalLink size={10} />
                                 </a>
                               </div>
                             </td>
-                            <td className="px-4 py-4 align-top">
+                            <td className="px-5 py-4 align-top">
                               <div className="flex flex-col gap-1 overflow-hidden">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <div className="flex items-center gap-1 text-slate-600">
-                                    <Calendar size={10} className="text-slate-400" />
-                                    <span className="text-[10px] font-bold whitespace-nowrap">
-                                      <span className="text-slate-400 font-medium mr-1 uppercase text-[8px] tracking-wider">Started</span>
+                                  <div className="flex items-center gap-1 text-slate-800">
+                                    <Calendar size={11} className="text-slate-500" />
+                                    <span className="text-[10px] font-black whitespace-nowrap">
+                                      <span className="text-slate-500 font-extrabold mr-1 uppercase text-[8px] tracking-wider">Started</span>
                                       {alloc.startDate}
                                     </span>
                                   </div>
-                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.5 bg-brand-navy/5 text-brand-navy rounded text-[8px] font-black border border-brand-navy/10">
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-brand-navy/10 text-brand-navy rounded text-[8px] font-black border border-brand-navy/20">
                                     <RefreshCw size={8} strokeWidth={3} /> {alloc.weekCycle}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-1 text-slate-400 flex-wrap">
-                                  <Clock size={10} className="text-slate-400" />
-                                  <span className="text-[10px] font-bold whitespace-nowrap">{alloc.startTime} - {alloc.endTime}</span>
+                                <div className="flex items-center gap-1 text-slate-600 flex-wrap">
+                                  <Clock size={11} className="text-slate-500" />
+                                  <span className="text-[10px] font-black whitespace-nowrap">{alloc.startTime} - {alloc.endTime}</span>
                                 </div>
-                                <span className="text-[9px] font-bold text-slate-400 leading-tight italic truncate w-full" title={alloc.days}>
+                                <span className="text-[10px] font-extrabold text-slate-600 leading-tight italic truncate w-full" title={alloc.days}>
                                   {alloc.days === 'Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday' ? 'Daily Class' : alloc.days}
                                 </span>
                               </div>
                             </td>
-                            <td className="px-4 py-4 text-center align-middle">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${status === 'Active' ? 'bg-green-50 text-green-600 border-green-100' :
-                                status === 'Hold' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                  status === 'Closed' ? 'bg-slate-100 text-slate-400 border-slate-200' :
-                                    'bg-brand-navy/5 text-brand-navy border-brand-navy/10'
+                            <td className="px-5 py-4 text-center align-middle">
+                              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border-2 ${status === 'Active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                                status === 'Hold' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                                  status === 'Closed' ? 'bg-slate-200 text-slate-700 border-slate-300' :
+                                    'bg-brand-navy/10 text-brand-navy border-brand-navy/20'
                                 }`}>
                                 {status.toUpperCase()}
                               </span>
@@ -308,9 +308,9 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
         })}
 
         {filteredAllocations.length === 0 && (
-          <div className="py-20 text-center flex flex-col items-center justify-center text-slate-300 bg-white rounded-3xl border border-slate-200">
-            <Filter size={48} className="mb-4 opacity-20" />
-            <p className="text-sm font-bold uppercase tracking-widest">No allocations match your search</p>
+          <div className="py-20 text-center flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border-2 border-slate-300 shadow-sm">
+            <Filter size={48} className="mb-4 opacity-30" />
+            <p className="text-sm font-black uppercase tracking-widest">No allocations match your search</p>
           </div>
         )}
       </div>
