@@ -16,6 +16,11 @@ import LoadingPopup from './components/LoadingPopup';
 
 
 const App: React.FC = () => {
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setManagingSession(null);
+    setIsCatalogView(false);
+  };
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('isAuthenticated') === 'true';
   });
@@ -170,6 +175,10 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleUpdateSessionFiles = (sessionId: string, newFiles: Session['files']) => {
+    setSessions(prev => prev.map(s => s.sessionId === sessionId ? { ...s, files: newFiles } : s));
   };
 
   const handleSessionUpdate = async (updated: Session) => {
@@ -382,7 +391,7 @@ const App: React.FC = () => {
                 <p className="text-slate-600 font-extrabold text-lg">You have <span className="text-brand-navy font-black border-b-2 border-brand-navy">{stats.pendingToday} sessions</span> pending.</p>
               </div>
               <div
-                onClick={() => setActiveTab('availability')}
+                onClick={() => handleTabChange('availability')}
                 className="flex items-center gap-4 bg-white p-3 pr-6 rounded-2xl border-2 border-slate-300 shadow-md group cursor-pointer hover:border-brand-navy transition-all self-start lg:self-auto"
               >
                 <div className="w-12 h-12 rounded-xl bg-brand-navy flex items-center justify-center text-white font-black text-lg shadow-md transition-transform group-hover:scale-105">
@@ -449,7 +458,7 @@ const App: React.FC = () => {
                     <div className="w-2 h-7 bg-brand-navy rounded-full" />
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Active Queue</h3>
                   </div>
-                  <button onClick={() => setActiveTab('upcoming')} className="text-brand-navy text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                  <button onClick={() => handleTabChange('upcoming')} className="text-brand-navy text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
                     VIEW FULL SCHEDULE <ChevronRight size={16} strokeWidth={3} />
                   </button>
                 </div>
@@ -462,7 +471,7 @@ const App: React.FC = () => {
                 </div>
                 <h4 className="text-2xl font-black text-slate-900 tracking-tight mb-2">That's all for today!</h4>
                 <p className="text-slate-600 font-bold text-base max-w-sm">You have completed all your scheduled sessions. Enjoy your rest.</p>
-                <button onClick={() => setActiveTab('history')} className="mt-8 text-brand-navy font-black text-xs uppercase tracking-widest underline underline-offset-4 decoration-2">Audit Completed Logs</button>
+                <button onClick={() => handleTabChange('history')} className="mt-8 text-brand-navy font-black text-xs uppercase tracking-widest underline underline-offset-4 decoration-2">Audit Completed Logs</button>
               </div>
             )}
           </div>
@@ -536,7 +545,7 @@ const App: React.FC = () => {
   return (
     <Layout
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleTabChange}
       onLogout={handleLogout}
     >
       <div className="pb-20">

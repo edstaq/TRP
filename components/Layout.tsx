@@ -22,7 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-100">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white text-slate-900 p-6 flex-col sticky top-0 h-screen border-r-2 border-slate-300 shadow-sm z-30">
+      <aside className="hidden md:flex w-64 bg-white text-slate-900 p-6 flex-col sticky top-0 h-screen border-r-2 border-slate-300 shadow-sm z-[70]">
         <div className="mb-8 flex items-center gap-3 px-2 pb-6 border-b-2 border-slate-200">
           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md overflow-hidden border-2 border-slate-300 shrink-0">
             <img
@@ -84,7 +84,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between px-5 py-3.5 bg-white border-b-2 border-slate-300 sticky top-0 z-30 shadow-sm">
+      <header className="md:hidden flex items-center justify-between px-5 py-3.5 bg-white border-b-2 border-slate-300 sticky top-0 z-[70] shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border-2 border-slate-300 overflow-hidden shrink-0">
             <img
@@ -112,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 px-3 py-2.5 safe-bottom z-40 flex justify-around items-center shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 px-3 py-2.5 safe-bottom z-[70] flex justify-around items-center shadow-lg">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
