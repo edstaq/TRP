@@ -1,0 +1,1 @@
+const fs = require('fs'); const f1 = fs.readFileSync('sheet1.txt', 'utf8'); const f2 = fs.readFileSync('sheet2.txt', 'utf8'); const f3a = fs.readFileSync('sheet3a.txt', 'utf8'); const f3b = fs.readFileSync('sheet3b.txt', 'utf8'); fs.writeFileSync('components/AttendanceSheet.tsx', f1 + '\n' + f2 + '\n' + f3a + '\n' + f3b, 'utf8'); console.log('DONE!');

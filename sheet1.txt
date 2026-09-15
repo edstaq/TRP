@@ -1,0 +1,84 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Session, StudentAttendance } from '../types';
+import {
+  ChevronLeft, Clock, BookOpen, CheckCircle, XCircle, Star, FileUp, ExternalLink, Loader2, Lock, Key, Check, RefreshCcw, StickyNote, AlertTriangle, FileText
+} from 'lucide-react';
+import { studentLogService, sessionService } from '../services/api';
+
+interface AttendanceSheetProps {
+  session: Session;
+  teacherId?: string;
+  onBack: () => void;
+  onUpdate: (updatedSession: Session) => void;
+  isCompleted?: boolean;
+}
+
+const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
+  session,
+  teacherId,
+  onBack,
+  onUpdate,
+  isCompleted = false
+}) => {
+  const [startedTime, setStartedTime] = useState(session.startedTime || '10:00');
+  const [endedTime, setEndedTime] = useState(session.endedTime || '11:00');
+  const [topicCovered, setTopicCovered] = useState(session.topicCovered || '');
+  const [students, setStudents] = useState<StudentAttendance[]>(session.students || []);
+  const [isLoading, setIsLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+  const [isRefreshingFiles, setIsRefreshingFiles] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [session.sessionId]);
+
+  const sessionFiles = session.files || [];
+  const sessionProofFile = sessionFiles.find(f => f.type === 'Session Proof');
+  const hasSessionProof = !!sessionProofFile;
+  const learnDocs = sessionFiles.filter(f => f.type === 'Learn Docs');
+  const hasLearnDocs = learnDocs.length >= 1;
+
+  // Key Unlock Condition: User must attach at least 1 Session Proof AND at least 1 Learn Doc (or session is already completed)
+  const isUnlocked = isCompleted || (hasSessionProof && hasLearnDocs);
+
+  const toggleAttendance = (id: string) => {
+    if (isCompleted || !isUnlocked) return;
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, attended: !s.attended } : s));
+  };
+
+  const setAllAttendance = (status: boolean) => {
+    if (isCompleted || !isUnlocked) return;
+    setStudents(prev => prev.map(s => ({ ...s, attended: status })));
+  };
+
+  const updateRate = (id: string, rate: number) => {
+    if (isCompleted || !isUnlocked) return;
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, listeningRate: rate } : s));
+  };
+
+  const updateReview = (id: string, review: string) => {
+    if (isCompleted || !isUnlocked) return;
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, review } : s));
+  };
+
+  const handleRefreshFiles = async () => {
+    setIsRefreshingFiles(true);
+    try {
+      const targetTeacherId = teacherId || session.id.split('_')[0];
+      if (targetTeacherId) {
+        const sessions = await sessionService.fetchByTeacherId(targetTeacherId);
+        const updatedSession = sessions.find(s => s.sessionId === session.sessionId);
+        if (updatedSession) {
+          onUpdate({ ...session, files: updatedSession.files });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh files:', error);
+    } finally {
+      setIsRefreshingFiles(false);
+    }
+  };

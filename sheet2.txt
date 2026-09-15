@@ -1,0 +1,85 @@
+  const setTimeNow = (setter: (val: string) => void) => {
+    if (isCompleted || !isUnlocked) return;
+    const now = new Date();
+    const timeStr = ${String(now.getHours()).padStart(2, '0')}:;
+    setter(timeStr);
+  };
+
+  const proofUploadUrl = https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=&entry.47705791=Session+Proof&entry.579457268=Screenshot;
+  const learnDocsUploadUrl = https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=&entry.47705791=Learn+Docs&entry.579457268=;
+
+  const handleSave = async () => {
+    if (isCompleted) {
+      onBack();
+      return;
+    }
+
+    if (!isUnlocked) {
+      alert('Please upload both Session Proof and at least one Learning Material document first, then click Refresh Files to unlock.');
+      return;
+    }
+
+    if (!startedTime || !endedTime) {
+      alert('Please enter both Started Time and Ended Time.');
+      return;
+    }
+
+    if (!topicCovered.trim()) {
+      alert('Please enter the Topic Covered.');
+      return;
+    }
+
+    const presentStudents = students.filter(s => s.attended);
+
+    if (presentStudents.length === 0) {
+      alert('Please mark at least one student as present.');
+      return;
+    }
+
+    const unratedStudents = presentStudents.filter(s => s.listeningRate === 0);
+
+    if (unratedStudents.length > 0) {
+      alert(Please provide a rating for all present students. Missing ratings for: );
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const logsToSave = students.map(s => ({
+        sessionId: session.sessionId,
+        studentId: s.id,
+        status: s.attended ? 'Present' : 'Absent',
+        rating: s.attended ? s.listeningRate : 0,
+        comment: s.review || ''
+      }));
+
+      const success = await studentLogService.bulkAdd(logsToSave);
+      if (!success) {
+        throw new Error('Failed to save student logs');
+      }
+
+      const sessionUpdates: any = {};
+
+      if (topicCovered !== session.topicCovered) {
+        sessionUpdates['Topic covered'] = topicCovered;
+      }
+      if (startedTime !== session.startedTime) {
+        sessionUpdates['Started Time'] = startedTime;
+      }
+      if (endedTime !== session.endedTime) {
+        sessionUpdates['Ended Time'] = endedTime;
+      }
+
+      if (Object.keys(sessionUpdates).length > 0) {
+        await sessionService.updateSession(session.sessionId, sessionUpdates);
+      }
+
+      onUpdate({ ...session, students, topicCovered, startedTime, endedTime });
+      onBack();
+    } catch (error) {
+      console.error('Error saving session records:', error);
+      alert('Failed to save session records. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };

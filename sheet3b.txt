@@ -1,0 +1,235 @@
+          <div className={space-y-6 transition-all duration-300 }>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='bg-white border-2 border-slate-200/90 p-6 rounded-3xl shadow-md space-y-4 border-t-4 border-t-brand-navy'>
+                <div className='flex items-center justify-between border-b border-slate-100 pb-3'>
+                  <div className='flex items-center gap-2.5'>
+                    <div className='w-9 h-9 rounded-xl bg-brand-navy text-white flex items-center justify-center shadow-sm'>
+                      <Clock size={18} strokeWidth={2.5} />
+                    </div>
+                    <h3 className='text-xs font-black uppercase tracking-widest text-slate-900'>2. SESSION TIMINGS</h3>
+                  </div>
+                  {!isUnlocked && (
+                    <span className='flex items-center gap-1 text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-md border border-amber-300'>
+                      <Lock size={12} /> Locked
+                    </span>
+                  )}
+                </div>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='space-y-2'>
+                    <label className='text-[10px] font-black text-slate-600 uppercase tracking-wider pl-1'>STARTED AT</label>
+                    <div className='flex items-center gap-2'>
+                      <input
+                        type='time'
+                        value={startedTime}
+                        onChange={(e) => setStartedTime(e.target.value)}
+                        disabled={isCompleted || !isUnlocked}
+                        className='flex-1 bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-brand-navy focus:bg-white transition-all disabled:opacity-60 shadow-inner'
+                      />
+                      <button
+                        type='button'
+                        onClick={() => setTimeNow(setStartedTime)}
+                        disabled={isCompleted || !isUnlocked}
+                        className='h-12 w-12 shrink-0 bg-slate-100 border-2 border-slate-300 hover:bg-brand-navy hover:text-white hover:border-brand-navy rounded-2xl flex items-center justify-center text-slate-700 transition-all active:scale-95 shadow-sm disabled:opacity-50'
+                        title='Set to Current Time'
+                      >
+                        <Clock size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className='space-y-2'>
+                    <label className='text-[10px] font-black text-slate-600 uppercase tracking-wider pl-1'>ENDED AT</label>
+                    <div className='flex items-center gap-2'>
+                      <input
+                        type='time'
+                        value={endedTime}
+                        onChange={(e) => setEndedTime(e.target.value)}
+                        disabled={isCompleted || !isUnlocked}
+                        className='flex-1 bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 py-3 text-sm font-black text-slate-900 outline-none focus:border-brand-navy focus:bg-white transition-all disabled:opacity-60 shadow-inner'
+                      />
+                      <button
+                        type='button'
+                        onClick={() => setTimeNow(setEndedTime)}
+                        disabled={isCompleted || !isUnlocked}
+                        className='h-12 w-12 shrink-0 bg-slate-100 border-2 border-slate-300 hover:bg-brand-navy hover:text-white hover:border-brand-navy rounded-2xl flex items-center justify-center text-slate-700 transition-all active:scale-95 shadow-sm disabled:opacity-50'
+                        title='Set to Current Time'
+                      >
+                        <Clock size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className='bg-white border-2 border-slate-200/90 p-6 rounded-3xl shadow-md space-y-4 border-t-4 border-t-brand-navy'>
+                <div className='flex items-center justify-between border-b border-slate-100 pb-3'>
+                  <div className='flex items-center gap-2.5'>
+                    <div className='w-9 h-9 rounded-xl bg-brand-navy text-white flex items-center justify-center shadow-sm'>
+                      <BookOpen size={18} strokeWidth={2.5} />
+                    </div>
+                    <h3 className='text-xs font-black uppercase tracking-widest text-slate-900'>3. TOPIC COVERED</h3>
+                  </div>
+                  <span className='text-[10px] font-extrabold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200 uppercase tracking-wider'>Required *</span>
+                </div>
+                <textarea
+                  value={topicCovered}
+                  onChange={(e) => setTopicCovered(e.target.value)}
+                  disabled={isCompleted || !isUnlocked}
+                  placeholder='Enter topic details (e.g., Chapter 4: Algebraic Fractions)...'
+                  className='w-full bg-slate-50 border-2 border-slate-300 rounded-2xl p-4 text-sm font-black text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-navy focus:bg-white transition-all min-h-[96px] resize-none disabled:opacity-60 shadow-inner'
+                />
+              </div>
+            </div>
+
+            <div className='bg-white border-2 border-slate-200/90 rounded-3xl shadow-md overflow-hidden border-t-4 border-t-brand-navy'>
+              <div className='bg-slate-50 border-b-2 border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4'>
+                <div>
+                  <h3 className='text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900 flex items-center gap-2'>
+                    <span>4. STUDENT ATTENDANCE & RATINGS ROSTER</span>
+                    {!isUnlocked && (
+                      <span className='text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-md border border-amber-300 flex items-center gap-1'>
+                        <Lock size={12} /> Locked
+                      </span>
+                    )}
+                  </h3>
+                  <p className='text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mt-0.5'>
+                    Mark individual student presence, rating (1-5 Stars), and feedback
+                  </p>
+                </div>
+                <div className='flex flex-wrap items-center gap-3'>
+                  <div className='flex items-center gap-1 bg-white border-2 border-slate-300 p-1.5 rounded-2xl shadow-sm'>
+                    <button
+                      type='button'
+                      onClick={() => setAllAttendance(true)}
+                      disabled={isCompleted || !isUnlocked}
+                      className='px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-950 font-black text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 active:scale-95'
+                    >
+                      ALL PRESENT
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => setAllAttendance(false)}
+                      disabled={isCompleted || !isUnlocked}
+                      className='px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 active:scale-95'
+                    >
+                      ALL ABSENT
+                    </button>
+                  </div>
+                  <div className='flex items-center gap-2 bg-slate-100 border-2 border-slate-300 px-4 py-2 rounded-2xl shadow-sm'>
+                    <span className='text-[10px] font-black text-slate-500 uppercase tracking-wider'>PRESENT:</span>
+                    <span className='text-xs font-black text-brand-navy'>
+                      {students.filter(s => s.attended).length} / {students.length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className='overflow-x-auto custom-scrollbar'>
+                <table className='w-full text-left border-collapse min-w-[700px]'>
+                  <thead>
+                    <tr className='bg-slate-100 border-b-2 border-slate-200'>
+                      <th className='px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest'>STUDENT</th>
+                      <th className='px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest text-center'>ATTENDANCE STATUS</th>
+                      <th className='px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest'>RATING <span className='text-red-600'>*</span></th>
+                      <th className='px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest w-[38%]'>OBSERVATIONS & FEEDBACK</th>
+                    </tr>
+                  </thead>
+                  <tbody className='divide-y-2 divide-slate-100'>
+                    {students.map((student) => (
+                      <tr
+                        key={student.id}
+                        className={	ransition-colors }
+                      >
+                        <td className='px-6 py-5'>
+                          <div className='flex items-center gap-3'>
+                            <div className={w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm transition-all shadow-sm }>
+                              {student.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className={ont-black tracking-tight text-base }>{student.name}</p>
+                              <p className='text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5'>ID: {student.id}</p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className='px-6 py-5 text-center'>
+                          <button
+                            type='button'
+                            onClick={() => toggleAttendance(student.id)}
+                            disabled={isCompleted || !isUnlocked}
+                            className={inline-flex h-10 px-5 rounded-2xl items-center gap-2 text-[10px] font-black uppercase tracking-wider transition-all border-2  }
+                          >
+                            {student.attended ? <CheckCircle size={15} /> : <XCircle size={15} />}
+                            {student.attended ? 'PRESENT' : 'ABSENT'}
+                          </button>
+                        </td>
+
+                        <td className='px-6 py-5'>
+                          <div className={lex items-center gap-3 transition-opacity }>
+                            <div className='flex items-center gap-1 bg-slate-50 border-2 border-slate-300 px-2.5 py-1.5 rounded-2xl shadow-inner'>
+                              {[1, 2, 3, 4, 5].map(star => {
+                                const isSelected = student.listeningRate >= star;
+                                return (
+                                  <button
+                                    type='button'
+                                    key={star}
+                                    onClick={() => updateRate(student.id, star)}
+                                    disabled={isCompleted || !isUnlocked}
+                                    className={p-1 rounded-lg transition-all }
+                                    title={Rate  Star}
+                                  >
+                                    <Star
+                                      size={20}
+                                      className={
+                                        isSelected
+                                          ? 'text-amber-500 fill-amber-400 drop-shadow-sm'
+                                          : 'text-slate-400 fill-slate-100 hover:text-amber-400'
+                                      }
+                                      strokeWidth={2}
+                                    />
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <span className={	ext-[10px] font-black px-3 py-1 rounded-xl uppercase tracking-wider shrink-0 border }>
+                              {student.listeningRate > 0 ? ${student.listeningRate} / 5 ★ : 'Required *'}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className='px-6 py-5'>
+                          <div className={	ransition-opacity }>
+                            <input
+                              type='text'
+                              value={student.review}
+                              onChange={(e) => updateReview(student.id, e.target.value)}
+                              disabled={isCompleted || !isUnlocked}
+                              placeholder='Add specific observation or feedback...'
+                              className='w-full bg-slate-50 border-2 border-slate-300 px-4 py-3 rounded-2xl text-xs font-black text-slate-900 outline-none focus:border-brand-navy focus:bg-white placeholder:text-slate-400 transition-all disabled:opacity-70 shadow-inner'
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className='flex justify-end pt-4 pb-8'>
+              <button
+                onClick={handleSave}
+                disabled={isLoading || (!isCompleted && !isUnlocked)}
+                className={w-full sm:w-auto font-black text-sm uppercase tracking-widest px-8 sm:px-10 py-4 rounded-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 }
+              >
+                {isLoading ? <Loader2 size={18} className='animate-spin' /> : null}
+                {isCompleted ? 'CLOSE RECORD' : !isUnlocked ? 'UPLOAD DOCUMENTS TO UNLOCK' : 'SAVE RECORD'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AttendanceSheet;
