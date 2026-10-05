@@ -1,6 +1,13 @@
-/* Main CSS file */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Additional custom styles can go here */
+@theme {
+  --color-brand-navy: #001171;
+  --color-brand-gray: #F8FAFC;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+  --radius-4xl: 1.5rem;
+  --radius-5xl: 1.75rem;
+}
+
+/* Additional custom styles */
+
