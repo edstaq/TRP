@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Session, Student } from '../types';
+import { Session, Student, SessionStatus } from '../types';
 import {
   ChevronLeft, Clock, BookOpen, CheckCircle, XCircle, Star, FileUp, ExternalLink, Loader2, Lock, Key, Check, RefreshCcw, StickyNote, AlertTriangle, FileText
 } from 'lucide-react';
 import { studentLogService } from '../services/studentLogService';
 import { sessionService } from '../services/sessionService';
+
+// In-memory cache for session student logs to prevent redundant network fetches
+const sessionLogsCache: Record<string, Student[]> = {};
 
 interface AttendanceSheetProps {
   session: Session;
@@ -21,12 +24,14 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   onBack,
   onUpdate,
   onUpdateFiles,
-  isCompleted = false
+  isCompleted: isCompletedProp = false
 }) => {
+  const isCompleted = isCompletedProp || session.status === SessionStatus.COMPLETED;
   const [startedTime, setStartedTime] = useState(session.startedTime || '');
   const [endedTime, setEndedTime] = useState(session.endedTime || '');
   const [topicCovered, setTopicCovered] = useState(session.topicCovered || '');
-  const [students, setStudents] = useState<Student[]>(session.students || []);
+  const [students, setStudents] = useState<Student[]>(() => sessionLogsCache[session.sessionId] || session.students || []);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [isRefreshingFiles, setIsRefreshingFiles] = useState(false);
@@ -42,6 +47,79 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
+    setStartedTime(session.startedTime || '');
+    setEndedTime(session.endedTime || '');
+    setTopicCovered(session.topicCovered || '');
+    if (sessionLogsCache[session.sessionId]) {
+      setStudents(sessionLogsCache[session.sessionId]);
+    } else {
+      setStudents(session.students || []);
+    }
+  }, [session.sessionId]);
+
+  // Fetch real-time student logs for this session if not cached
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadStudentLogs = async () => {
+      if (!session.sessionId) return;
+
+      // If already in memory cache, we have the latest
+      if (sessionLogsCache[session.sessionId]) {
+        setStudents(sessionLogsCache[session.sessionId]);
+        return;
+      }
+
+      setIsLoadingLogs(true);
+      try {
+        const logs = await studentLogService.fetchBySessionId(session.sessionId);
+        if (!isMounted) return;
+
+        if (logs && logs.length > 0) {
+          // Map logs by Student ID (use latest if multiple entries exist)
+          const logMap = new Map<string, typeof logs[0]>();
+          logs.forEach(log => {
+            if (log["Student ID"]) {
+              logMap.set(String(log["Student ID"]).trim(), log);
+            }
+          });
+
+          const baseStudents = session.students || [];
+          const updated = baseStudents.map(student => {
+            const matchedLog = logMap.get(String(student.id).trim());
+            if (matchedLog) {
+              const statusStr = (matchedLog.Status || '').trim().toLowerCase();
+              const isPresent = statusStr === 'present';
+              const parsedRating = typeof matchedLog.Rating === 'number'
+                ? matchedLog.Rating
+                : parseInt(String(matchedLog.Rating), 10) || 0;
+              return {
+                ...student,
+                attended: isPresent,
+                listeningRate: parsedRating,
+                review: matchedLog.Comment || ''
+              };
+            }
+            return student;
+          });
+
+          sessionLogsCache[session.sessionId] = updated;
+          setStudents(updated);
+        }
+      } catch (err) {
+        console.error('Failed to fetch student logs for session:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoadingLogs(false);
+        }
+      }
+    };
+
+    loadStudentLogs();
+
+    return () => {
+      isMounted = false;
+    };
   }, [session.sessionId]);
 
   const sessionFiles = currentFiles;
@@ -155,6 +233,9 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
         throw new Error('Failed to save student logs');
       }
 
+      // Update in-memory cache so reopening immediately reflects saved values
+      sessionLogsCache[session.sessionId] = students;
+
       const sessionUpdates: any = {};
 
       if (topicCovered !== session.topicCovered) {
@@ -232,7 +313,12 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            {isUnlocked ? (
+            {isCompleted ? (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300 px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-sm">
+                <CheckCircle size={14} className="text-blue-600" />
+                <span>COMPLETED RECORD</span>
+              </span>
+            ) : isUnlocked ? (
               <span className="inline-flex items-center gap-1.5 text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-sm">
                 <CheckCircle size={14} className="text-emerald-600" />
                 <span>FORM UNLOCKED</span>
@@ -547,15 +633,27 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                 </div>
                 <div className="flex items-center gap-2 bg-slate-100 border-2 border-slate-300 px-4 py-2 rounded-2xl shadow-sm">
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">PRESENT:</span>
-                  <span className="text-xs font-black text-brand-navy">
-                    {students.filter(s => s.attended).length} / {students.length}
+                  <span className="text-xs font-black text-brand-navy flex items-center gap-1.5">
+                    {isLoadingLogs ? (
+                      <Loader2 size={13} className="animate-spin text-brand-navy" />
+                    ) : (
+                      `${students.filter(s => s.attended).length} / ${students.length}`
+                    )}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[700px]">
+            {isLoadingLogs ? (
+              <div className="py-14 bg-slate-50 border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-500 shadow-inner">
+                <Loader2 size={30} className="animate-spin text-brand-navy" />
+                <p className="text-xs font-black uppercase tracking-widest text-slate-600">
+                  Retrieving student attendance & logs...
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-slate-100 border-b-2 border-slate-200">
                     <th className="px-6 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">STUDENT</th>
@@ -656,7 +754,8 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                 </tbody>
               </table>
             </div>
-          </div>
+          )}
+        </div>
 
           {/* Bottom Action Bar */}
           <div className="flex justify-end pt-4 pb-8">

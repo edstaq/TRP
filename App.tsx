@@ -333,6 +333,7 @@ const App: React.FC = () => {
           teacherId={teacherProfile.id}
           onUpdate={handleSessionUpdate}
           onBack={() => setManagingSession(null)}
+          isCompleted={managingSession.status === SessionStatus.COMPLETED}
         />
       );
     }
