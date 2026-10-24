@@ -65,8 +65,8 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
     <div className={`group relative bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-6 transition-all duration-500 shadow-sm hover:shadow-xl ${isCompleted ? 'grayscale-[0.4] opacity-95' : ''}`}>
 
       {/* Top Section: Date, Info, Time */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 sm:mb-6">
-        <div className="flex items-center gap-3 sm:gap-5">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
+        <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
           {/* Smart Date Badge */}
           <div className={`${isCompleted ? 'h-16 sm:h-20' : 'h-14 sm:h-16'} w-12 sm:w-14 rounded-xl flex flex-col items-center justify-center font-black transition-all duration-500 relative overflow-hidden flex-shrink-0 ${isCompleted
             ? 'bg-slate-100 text-slate-400'
@@ -88,15 +88,15 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
 
           <div className="flex flex-col min-w-0 flex-1">
             <p className="text-[9px] font-black text-brand-navy/60 uppercase tracking-[0.2em] mb-0.5 truncate">{session.className}</p>
-            <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-snug group-hover:text-brand-navy transition-colors truncate">
+            <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-snug group-hover:text-brand-navy transition-colors line-clamp-2 break-words" title={session.subject}>
               {session.subject}
             </h3>
           </div>
         </div>
 
-        <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-          <p className="text-base sm:text-lg font-black text-slate-900 leading-none lowercase tracking-tight">{timeStr}</p>
-          <div className="flex items-center gap-1.5 sm:mt-1">
+        <div className="flex-shrink-0 text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+          <p className="text-base sm:text-lg font-black text-slate-900 leading-none lowercase tracking-tight whitespace-nowrap">{timeStr}</p>
+          <div className="flex items-center gap-1.5 sm:mt-1 whitespace-nowrap">
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
               {session.durationMinutes} MINS
             </span>

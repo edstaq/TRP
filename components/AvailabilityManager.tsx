@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { WEEKDAYS, GOOGLE_FORMS } from '../constants';
-import { subjectService } from '../services/subjectService';
-import { availabilityService, TeacherAvailability } from '../services/availabilityService';
-import { Plus, Trash2, BookOpen, Save, Search, Mail, ShieldCheck, Wallet, ArrowUpRight, TrendingUp, Phone, Clock, Layers, AlertCircle, MessageSquare, UserPlus, ChevronRight, Loader2, CheckCircle2, Lock } from 'lucide-react';
-import { TeacherProfile, Availability, SubjectCatalogItem } from '../types';
+import { availabilityService } from '../services/availabilityService';
+import { Plus, Trash2, BookOpen, Save, Mail, ShieldCheck, Wallet, ArrowUpRight, TrendingUp, Phone, Clock, Layers, AlertCircle, MessageSquare, UserPlus, ChevronRight, Loader2, CheckCircle2, Lock } from 'lucide-react';
+import { TeacherProfile, Availability } from '../types';
 import ChangePasswordModal from './ChangePasswordModal';
+import DynamicSubjectSelector from './DynamicSubjectSelector';
 
 interface AvailabilityManagerProps {
   profile: TeacherProfile;
   onUpdate: (profile: TeacherProfile) => void;
-  onOpenCatalog: () => void;
+  onOpenCatalog?: () => void;
 }
 
 interface TimeSelectorProps {
@@ -79,13 +79,14 @@ const TimeSelector: React.FC<TimeSelectorProps> = ({ value, onChange, className 
 const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUpdate, onOpenCatalog }) => {
   const [subjects, setSubjects] = useState<string[]>(profile.subjects);
   const [availability, setAvailability] = useState<Availability[]>([]);
-  const [detailedSubjects, setDetailedSubjects] = useState<SubjectCatalogItem[]>([]);
-  const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [savingAvailability, setSavingAvailability] = useState(false);
-  const [savingSubjects, setSavingSubjects] = useState(false);
   const [originalAvailability, setOriginalAvailability] = useState<Availability[]>([]);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  useEffect(() => {
+    setSubjects(profile.subjects || []);
+  }, [profile.subjects]);
 
   // Time conversion helpers - Timezone-independent implementation
   const to24h = (apiTime: any) => {
@@ -197,44 +198,6 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
   useEffect(() => {
     fetchAvailability();
   }, [fetchAvailability]);
-
-  useEffect(() => {
-    const fetchSubjectDetails = async () => {
-      try {
-        setLoadingSubjects(true);
-        const data = await subjectService.getSubjectsByIds(subjects);
-
-        // Transform API data to SubjectCatalogItem format
-        const transformed: SubjectCatalogItem[] = data.map(s => ({
-          id: String(s['Subject ID'] || ''),
-          name: s['Label'] || s['Subject Name'] || 'Unnamed Subject',
-          category: s['Category'] || '',
-          board: s['Board'] || '',
-          level: s['Level'] || '',
-          department: s['Department'] || '',
-          code: String(s['Subject Code'] || ''),
-          tags: s['Tags'] && typeof s['Tags'] === 'string' ? s['Tags'].split(',').map(t => t.trim()) : [],
-          status: s['Status'] || 'Active',
-          description: s['Subject Description'] || s['Structure'] || '',
-          teacherIds: [],
-          price: 0,
-          label: s['Label'] || s['Subject Name'] || '',
-          stage: s['Stage'] || '',
-        }));
-        setDetailedSubjects(transformed.filter(s => s.id));
-      } catch (error) {
-        console.error('Failed to fetch subject details:', error);
-      } finally {
-        setLoadingSubjects(false);
-      }
-    };
-
-    if (subjects.length > 0) {
-      fetchSubjectDetails();
-    } else {
-      setDetailedSubjects([]);
-    }
-  }, [subjects]);
 
   const addSlot = (day: string) => {
     setAvailability(prev => {
@@ -355,21 +318,6 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
       setSavingAvailability(false);
     }
   };
-
-  const handleSaveSubjects = async () => {
-    try {
-      setSavingSubjects(true);
-      await onUpdate({ ...profile, subjects });
-      alert('Academic subjects updated successfully!');
-    } catch (error) {
-      console.error('Failed to save subjects:', error);
-      alert('Failed to update subjects. Please try again.');
-    } finally {
-      setSavingSubjects(false);
-    }
-  };
-
-  const isSubjectsDirty = JSON.stringify(subjects) !== JSON.stringify(profile.subjects);
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto animate-in fade-in duration-700 pb-20">
@@ -588,115 +536,16 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
         </div>
       </section>
 
-      {/* Academic Subjects Section */}
-      <section className="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-slate-300 border-t-4 border-t-brand-navy shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 px-2">
-          <div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Academic Subjects</h3>
-            <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest mt-1">Subjects currently indexed for your profile</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {isSubjectsDirty && (
-              <button
-                onClick={handleSaveSubjects}
-                disabled={savingSubjects || loadingSubjects}
-                className="flex items-center justify-center gap-2.5 bg-brand-navy text-white h-11 px-6 rounded-xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-md hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {savingSubjects ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Save size={18} />
-                )}
-                {savingSubjects ? 'COMMITTING...' : 'COMMIT CHANGES'}
-              </button>
-            )}
-            <button
-              onClick={onOpenCatalog}
-              className="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 border-2 border-slate-300 h-11 px-6 rounded-xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all hover:border-brand-navy hover:bg-brand-navy hover:text-white"
-            >
-              <Search size={18} strokeWidth={2.5} /> SEARCH CATALOG
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {loadingSubjects ? (
-            <div className="col-span-full py-16 flex flex-col items-center justify-center text-slate-500">
-              <Loader2 size={36} className="animate-spin mb-3 text-brand-navy" />
-              <p className="text-xs font-black uppercase tracking-widest">Synchronizing Catalog...</p>
-            </div>
-          ) : detailedSubjects.map(sub => (
-            <div
-              key={sub?.id}
-              className="group relative bg-slate-50 border-2 border-slate-300 p-5 rounded-2xl hover:bg-white hover:border-brand-navy hover:shadow-md transition-all duration-300 flex items-start gap-4"
-            >
-              {/* LEADING (Leading Icon) */}
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-brand-navy border-2 border-slate-300 shadow-sm group-hover:bg-brand-navy group-hover:text-white transition-all shrink-0">
-                <BookOpen size={24} />
-              </div>
-
-              {/* CENTER (Title, Subtitle, Chips) */}
-              <div className="flex-1 min-w-0 pr-8">
-                <div className="flex flex-col gap-1 mb-3">
-                  <h4 className="font-black text-slate-900 text-base leading-tight group-hover:text-brand-navy transition-colors truncate">
-                    {sub?.name || 'Academic Subject'}
-                  </h4>
-                  <p className="text-[12px] font-bold text-slate-600 leading-relaxed line-clamp-1">
-                    {sub?.description || '.'}
-                  </p>
-                </div>
-
-                {/* CHIPS AREA */}
-                <div className="flex flex-wrap gap-1.5">
-                  {sub?.stage && (
-                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.stage}</span>
-                  )}
-                  {sub?.department && sub.department !== 'General' && (
-                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.department}</span>
-                  )}
-                  {sub?.board && (
-                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.board}</span>
-                  )}
-                  {sub?.level && (
-                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.level}</span>
-                  )}
-                  {sub?.category && (
-                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-white border border-slate-300 text-slate-800 rounded-md uppercase tracking-wider">{sub.category}</span>
-                  )}
-                  {sub?.code && (
-                    <span className="text-[9px] font-black px-2.5 py-0.5 bg-slate-200 border border-slate-400 text-slate-900 rounded-md uppercase tracking-wider">{sub.code}</span>
-                  )}
-                  {sub?.tags && sub.tags.map((tag, i) => (
-                    <span key={i} className="text-[9px] font-black px-2.5 py-0.5 bg-blue-50 border border-blue-200 text-brand-navy rounded-md uppercase tracking-wider">{tag}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* TRAILING (Delete Action) */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSubjects(prev => prev.filter(id => id !== sub?.id));
-                }}
-                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-600 transition-colors hover:bg-red-50 rounded-xl border border-transparent hover:border-red-200"
-                title="Remove from profile"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          ))}
-
-          {subjects.length === 0 && (
-            <div className="col-span-full py-16 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-500 bg-slate-50">
-              <div className="w-16 h-16 bg-white rounded-2xl border-2 border-slate-300 flex items-center justify-center mb-4 shadow-sm">
-                <BookOpen size={32} className="text-slate-400" />
-              </div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-700">No Academic Subjects Indexed</p>
-              <button onClick={onOpenCatalog} className="mt-3 text-brand-navy font-black text-xs uppercase tracking-widest hover:underline decoration-2 underline-offset-4">Open Catalog</button>
-            </div>
-          )}
-        </div>
-      </section>
+      {/* Dynamic Academic Subject Selection Section */}
+      <DynamicSubjectSelector
+        profile={profile}
+        currentSubjectIds={subjects}
+        onSubjectsChange={(newIds) => setSubjects(newIds)}
+        onSaveProfile={async (newIds) => {
+          setSubjects(newIds);
+          await onUpdate({ ...profile, subjects: newIds });
+        }}
+      />
     </div>
   );
 };

@@ -532,7 +532,7 @@ const App: React.FC = () => {
           <AvailabilityManager
             profile={teacherProfile}
             onUpdate={handleProfileUpdate}
-            onOpenCatalog={() => setIsCatalogView(true)}
+
           />
         );
 
