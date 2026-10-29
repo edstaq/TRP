@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B192C"/>
+      <stop offset="50%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="8" y="8" width="496" height="496" rx="104" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6"/>
+  <!-- Graduation Cap -->
+  <path d="M256 120 L416 195 L256 270 L96 195 Z" fill="#FFFFFF"/>
+  <path d="M160 230 L160 310 C160 340 352 340 352 310 L352 230" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+  <!-- Tassel -->
+  <path d="M380 200 L410 260 L400 330" fill="none" stroke="url(#accent)" stroke-width="14" stroke-linecap="round"/>
+  <!-- TRP Badge -->
+  <rect x="140" y="370" width="232" height="60" rx="18" fill="url(#accent)"/>
+  <text x="256" y="413" fill="#0B192C" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="900" font-size="34" text-anchor="middle" letter-spacing="4">TRP TEACHER</text>
+</svg>

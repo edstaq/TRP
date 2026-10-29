@@ -14,6 +14,9 @@ import { LogIn, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, C
 import { APP_CONFIG } from './config';
 import LoadingPopup from './components/LoadingPopup';
 import { AddSessionModal } from './components/AddSessionModal';
+import { usePWAInstall } from './hooks/usePWAInstall';
+import { PWAInstallPromptModal } from './components/PWAInstallPromptModal';
+import { IOSInstallGuideModal } from './components/IOSInstallGuideModal';
 
 
 const App: React.FC = () => {
@@ -37,6 +40,27 @@ const App: React.FC = () => {
   const [managingSession, setManagingSession] = useState<Session | null>(null);
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
   const [selectedAllocationForAdd, setSelectedAllocationForAdd] = useState<Allocation | null>(null);
+
+  const {
+    isIOS,
+    showLoginPrompt,
+    setShowLoginPrompt,
+    showIOSGuide,
+    setShowIOSGuide,
+    triggerInstall,
+    dismissLoginPrompt,
+    shouldShowLoginPrompt
+  } = usePWAInstall();
+
+  // Prompt mobile users to install on login / app entry
+  useEffect(() => {
+    if (isAuthenticated && shouldShowLoginPrompt()) {
+      const timer = setTimeout(() => {
+        setShowLoginPrompt(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, shouldShowLoginPrompt, setShowLoginPrompt]);
 
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile>(() => {
     const saved = localStorage.getItem('teacherProfile');
@@ -609,6 +633,20 @@ const App: React.FC = () => {
         preSelectedAllocation={selectedAllocationForAdd}
         teacherId={teacherProfile.id}
         onSessionCreated={handleSessionCreated}
+      />
+      <PWAInstallPromptModal
+        isOpen={showLoginPrompt}
+        onClose={() => dismissLoginPrompt(24)}
+        onInstall={async () => {
+          setShowLoginPrompt(false);
+          await triggerInstall();
+        }}
+        isIOS={isIOS}
+      />
+      <IOSInstallGuideModal
+        isOpen={showIOSGuide}
+        onClose={() => setShowIOSGuide(false)}
+        isIOS={isIOS}
       />
     </Layout>
   );

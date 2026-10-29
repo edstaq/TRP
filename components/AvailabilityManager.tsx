@@ -2,10 +2,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { WEEKDAYS, GOOGLE_FORMS } from '../constants';
 import { availabilityService } from '../services/availabilityService';
-import { Plus, Trash2, BookOpen, Save, Mail, ShieldCheck, Wallet, ArrowUpRight, TrendingUp, Phone, Clock, Layers, AlertCircle, MessageSquare, UserPlus, ChevronRight, Loader2, CheckCircle2, Lock } from 'lucide-react';
+import { Plus, Trash2, BookOpen, Save, Mail, ShieldCheck, Wallet, ArrowUpRight, TrendingUp, Phone, Clock, Layers, AlertCircle, MessageSquare, UserPlus, ChevronRight, Loader2, CheckCircle2, Lock, Smartphone, Download, Sparkles } from 'lucide-react';
 import { TeacherProfile, Availability } from '../types';
 import ChangePasswordModal from './ChangePasswordModal';
 import DynamicSubjectSelector from './DynamicSubjectSelector';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { IOSInstallGuideModal } from './IOSInstallGuideModal';
 
 interface AvailabilityManagerProps {
   profile: TeacherProfile;
@@ -83,6 +85,7 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
   const [savingAvailability, setSavingAvailability] = useState(false);
   const [originalAvailability, setOriginalAvailability] = useState<Availability[]>([]);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const { isStandalone, isIOS, triggerInstall, showIOSGuide, setShowIOSGuide } = usePWAInstall();
 
   useEffect(() => {
     setSubjects(profile.subjects || []);
@@ -545,6 +548,65 @@ const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({ profile, onUp
           setSubjects(newIds);
           await onUpdate({ ...profile, subjects: newIds });
         }}
+      />
+
+      {/* 📱 Mobile Application Installation Section (At the Very Bottom) */}
+      <section className="bg-white rounded-[2rem] p-6 md:p-8 border-2 border-slate-300 shadow-md relative overflow-hidden border-t-4 border-t-brand-navy">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-brand-navy text-white flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
+              <Smartphone size={24} />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-base font-black text-slate-900 tracking-tight">
+                  Mobile Application
+                </h4>
+                {isStandalone ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 size={11} strokeWidth={3} /> Installed
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <Sparkles size={11} /> Shortcut
+                  </span>
+                )}
+              </div>
+              <p className="text-xs font-bold text-slate-600 max-w-lg leading-relaxed">
+                {isStandalone
+                  ? "TRP Teacher is active as an installed standalone mobile application on this device."
+                  : isIOS
+                    ? "Add TRP to your iPhone/iPad Home Screen for fast, full-screen 1-tap access."
+                    : "Install TRP on your mobile phone for fast 1-tap access and a full-screen app experience."}
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center">
+            {isStandalone ? (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-800 border-2 border-emerald-200 text-xs font-black">
+                <CheckCircle2 size={16} strokeWidth={2.5} />
+                <span>App Ready</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => triggerInstall()}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-brand-navy hover:bg-slate-900 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 group/install"
+              >
+                <Download size={16} strokeWidth={2.5} className="group-hover/install:translate-y-0.5 transition-transform" />
+                <span>{isIOS ? "How to Install" : "Install App"}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* iOS Install Guide Modal */}
+      <IOSInstallGuideModal
+        isOpen={showIOSGuide}
+        onClose={() => setShowIOSGuide(false)}
+        isIOS={isIOS}
       />
     </div>
   );
