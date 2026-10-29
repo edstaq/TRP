@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Session, Student, SessionStatus } from '../types';
+import { Session, Student, SessionStatus, ChecklistTemplateItem } from '../types';
 import {
-  ChevronLeft, Clock, BookOpen, CheckCircle, XCircle, Star, FileUp, ExternalLink, Loader2, Lock, Key, Check, RefreshCcw, StickyNote, AlertTriangle, FileText
+  ChevronLeft, Clock, BookOpen, CheckCircle, XCircle, Star, FileUp, ExternalLink, Loader2, Lock, Key, Check, RefreshCcw, StickyNote, AlertTriangle, FileText, Mic, ListChecks
 } from 'lucide-react';
 import { studentLogService } from '../services/studentLogService';
 import { sessionService } from '../services/sessionService';
+import { checklistService } from '../services/checklistService';
 
 // In-memory cache for session student logs to prevent redundant network fetches
 const sessionLogsCache: Record<string, Student[]> = {};
@@ -36,10 +37,84 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   const [copiedId, setCopiedId] = useState(false);
   const [isRefreshingFiles, setIsRefreshingFiles] = useState(false);
   const [currentFiles, setCurrentFiles] = useState(session.files || []);
+  const [checklistTemplates, setChecklistTemplates] = useState<ChecklistTemplateItem[]>([]);
+  const [selectedMode, setSelectedMode] = useState<string>('Teaching');
+  const [checklistAnswers, setChecklistAnswers] = useState<Record<string, string | boolean>>({});
+  const [isLoadingChecklist, setIsLoadingChecklist] = useState(false);
 
   useEffect(() => {
     setCurrentFiles(session.files || []);
   }, [session.files]);
+
+  // Load checklist templates and previous session answers
+  useEffect(() => {
+    let isMounted = true;
+    const loadChecklist = async () => {
+      setIsLoadingChecklist(true);
+      try {
+        const [templates, savedMaster] = await Promise.all([
+          checklistService.fetchTemplates(),
+          session.sessionId ? checklistService.fetchBySessionId(session.sessionId) : Promise.resolve([])
+        ]);
+
+        if (!isMounted) return;
+
+        const activeTemplates = (templates && templates.length > 0) ? templates : [
+          { checkId: 'jk5h634', role: 'Teacher', mode: 'Teaching', items: 'Review Previous Class Concepts', values: 'TRUE', isCheckbox: true, options: [] },
+          { checkId: 'jk5h635', role: 'Teacher', mode: 'Teaching', items: 'Share Learning Materials & Screens', values: 'TRUE', isCheckbox: true, options: [] },
+          { checkId: 'jk5h636', role: 'Teacher', mode: 'Teaching', items: 'Ask for Feedback & Doubts', values: 'TRUE', isCheckbox: true, options: [] },
+          { checkId: 'jk5h637', role: 'Teacher', mode: 'Exam', items: 'Question Paper Shared', values: 'TRUE', isCheckbox: true, options: [] },
+          { checkId: 'jk5h638', role: 'Teacher', mode: 'Exam', items: 'Exam Conduct & Proctoring Completed', values: 'TRUE', isCheckbox: true, options: [] }
+        ];
+
+        setChecklistTemplates(activeTemplates);
+
+        // Discover unique modes
+        const modes: string[] = Array.from(new Set(activeTemplates.map(t => t.mode).filter(Boolean)));
+        let initialMode = modes[0] || 'Teaching';
+
+        const initialAnswers: Record<string, string | boolean> = {};
+
+        // Prepopulate defaults from template definitions
+        activeTemplates.forEach(t => {
+          if (t.isCheckbox) {
+            initialAnswers[t.checkId] = false;
+          } else if (t.options && t.options.length > 0) {
+            initialAnswers[t.checkId] = t.options[0];
+          } else {
+            initialAnswers[t.checkId] = '';
+          }
+        });
+
+        // Overlay with saved session answers if existing
+        if (savedMaster && savedMaster.length > 0) {
+          savedMaster.forEach(rec => {
+            const checkId = rec["Check id"] || '';
+            const rawVal = rec["Values"] !== undefined ? String(rec["Values"]).trim() : '';
+            if (rec["Mode"]) {
+              initialMode = rec["Mode"];
+            }
+            const tmpl = activeTemplates.find(t => t.checkId === checkId);
+            if (tmpl && tmpl.isCheckbox) {
+              initialAnswers[checkId] = rawVal.toLowerCase() === 'true';
+            } else if (checkId) {
+              initialAnswers[checkId] = rawVal;
+            }
+          });
+        }
+
+        setSelectedMode(initialMode);
+        setChecklistAnswers(initialAnswers);
+      } catch (err) {
+        console.error('Failed to load checklist:', err);
+      } finally {
+        if (isMounted) setIsLoadingChecklist(false);
+      }
+    };
+
+    loadChecklist();
+    return () => { isMounted = false; };
+  }, [session.sessionId]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -122,14 +197,30 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     };
   }, [session.sessionId]);
 
+  const isVoiceSummary = (f: any) => {
+    const fileName = (f.fileName || f.name || '').toLowerCase();
+    return fileName.includes('voice summary') || fileName.includes('voicesummary') || fileName.includes('voice') || fileName.includes('audio');
+  };
+
+  const isSessionProof = (f: any) => {
+    if (isVoiceSummary(f)) return false;
+    const fileName = (f.fileName || f.name || '').toLowerCase();
+    return f.type === 'Session Proof' || fileName.includes('proof') || fileName.includes('screenshot');
+  };
+
   const sessionFiles = currentFiles;
-  const sessionProofFile = sessionFiles.find(f => f.type === 'Session Proof' || (f.name && (f.name.toLowerCase().includes('proof') || f.name.toLowerCase().includes('screenshot'))));
+  const sessionProofFile = sessionFiles.find(isSessionProof);
   const hasSessionProof = !!sessionProofFile;
-  const learnDocs = sessionFiles.filter(f => f.type === 'Learn Docs' || (f.name && (f.name.toLowerCase().includes('material') || f.name.toLowerCase().includes('doc'))));
+
+  const voiceSummaryFiles = sessionFiles.filter(isVoiceSummary);
+  const voiceSummaryFile = voiceSummaryFiles[0];
+  const hasVoiceSummary = voiceSummaryFiles.length >= 1;
+
+  const learnDocs = sessionFiles.filter(f => !isVoiceSummary(f) && !isSessionProof(f) && (f.type === 'Learn Docs' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('material') || (f.fileName || f.name).toLowerCase().includes('doc')))));
   const hasLearnDocs = learnDocs.length >= 1;
 
-  // Key Unlock Condition: User must attach at least 1 Session Proof AND at least 1 Learn Doc (or session is already completed)
-  const isUnlocked = isCompleted || (hasSessionProof && hasLearnDocs);
+  // Key Unlock Condition: User must attach at least 1 Session Proof, at least 1 Learn Doc, AND at least 1 Voice Summary (or session is already completed)
+  const isUnlocked = isCompleted || (hasSessionProof && hasLearnDocs && hasVoiceSummary);
 
   const toggleAttendance = (id: string) => {
     if (isCompleted || !isUnlocked) return;
@@ -149,6 +240,22 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   const updateReview = (id: string, review: string) => {
     if (isCompleted || !isUnlocked) return;
     setStudents(prev => prev.map(s => s.id === id ? { ...s, review } : s));
+  };
+
+  const toggleChecklistItem = (checkId: string) => {
+    if (isCompleted || !isUnlocked) return;
+    setChecklistAnswers(prev => ({
+      ...prev,
+      [checkId]: !prev[checkId]
+    }));
+  };
+
+  const setChecklistDropdown = (checkId: string, val: string) => {
+    if (isCompleted || !isUnlocked) return;
+    setChecklistAnswers(prev => ({
+      ...prev,
+      [checkId]: val
+    }));
   };
 
   const handleRefreshFiles = async () => {
@@ -182,6 +289,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
 
   const proofUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=Session+Proof&entry.579457268=Screenshot';
   const learnDocsUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=Learn+Docs&entry.579457268=';
+  const voiceSummaryUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=Learn+Docs&entry.579457268=' + encodeURIComponent('Voice Summary');
 
   const handleSave = async () => {
     if (isCompleted) {
@@ -190,7 +298,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     }
 
     if (!isUnlocked) {
-      alert('Please upload both Session Proof and at least one Learning Material document first, then click Refresh Files to unlock.');
+      alert('Please upload Session Proof, at least one Learning Material document, and Voice Summary first, then click Refresh Files to unlock.');
       return;
     }
 
@@ -250,6 +358,37 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
 
       if (Object.keys(sessionUpdates).length > 0) {
         await sessionService.updateSession(session.sessionId, sessionUpdates);
+      }
+
+      // Save checklist responses to Checklist Master
+      if (checklistTemplates.length > 0) {
+        try {
+          const currentModeTemplates = checklistTemplates.filter(
+            t => t.mode.toLowerCase() === selectedMode.toLowerCase()
+          );
+          const checklistToSave = currentModeTemplates.map(tmpl => {
+            const ans = checklistAnswers[tmpl.checkId];
+            const valStr = typeof ans === 'boolean'
+              ? (ans ? 'TRUE' : 'FALSE')
+              : (ans !== undefined ? String(ans) : '');
+            return {
+              checkId: tmpl.checkId,
+              role: tmpl.role || 'Teacher',
+              mode: tmpl.mode,
+              items: tmpl.items,
+              values: valStr,
+              itemId: tmpl.checkId
+            };
+          });
+
+          await checklistService.saveSessionChecklist(
+            session.sessionId,
+            teacherId || session.id.split('_')[0] || '',
+            checklistToSave
+          );
+        } catch (checklistErr) {
+          console.warn('Checklist save warning:', checklistErr);
+        }
       }
 
       onUpdate({ ...session, students, topicCovered, startedTime, endedTime });
@@ -348,7 +487,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                     <span className="text-[10px] font-black text-red-600 bg-red-50 px-2.5 py-0.5 rounded-md border border-red-200 uppercase tracking-wider">Required First</span>
                   </div>
                   <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mt-0.5">
-                    Upload 1 session proof & at least 1 learning material document to unlock session details and attendance
+                    Upload 1 session proof, at least 1 learning material & 1 voice summary to unlock session details and attendance
                   </p>
                 </div>
               </div>
@@ -364,7 +503,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
             </div>
 
             {/* Document Upload Slots Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
               {/* Slot 1: Session Proof (Requires 1 Document) */}
               {hasSessionProof ? (
@@ -390,7 +529,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                       rel="noopener noreferrer"
                       className="flex items-center justify-between p-3 bg-white border border-emerald-200 rounded-xl text-xs font-black text-brand-navy hover:bg-emerald-50 transition-all group"
                     >
-                      <span className="truncate max-w-[200px]">{sessionProofFile.name || 'Session Proof Screenshot'}</span>
+                      <span className="truncate max-w-[200px]">{sessionProofFile.fileName || sessionProofFile.name || 'Session Proof Screenshot'}</span>
                       <ExternalLink size={14} className="text-slate-400 group-hover:text-brand-navy shrink-0" />
                     </a>
                   )}
@@ -455,7 +594,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                         rel="noopener noreferrer"
                         className="flex items-center justify-between p-2.5 bg-white border border-blue-200 rounded-xl text-xs font-black text-brand-navy hover:bg-blue-50 transition-all group"
                       >
-                        <span className="truncate max-w-[200px]">{doc.name || ('Learning Doc ' + (idx + 1))}</span>
+                        <span className="truncate max-w-[200px]">{doc.fileName || doc.name || ('Learning Doc ' + (idx + 1))}</span>
                         <ExternalLink size={14} className="text-slate-400 group-hover:text-brand-navy shrink-0" />
                       </a>
                     ))}
@@ -503,16 +642,92 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                   </div>
                 </a>
               )}
+
+              {/* Slot 3: Voice Summary (Requires 1 File) */}
+              {hasVoiceSummary ? (
+                <div className="border-2 border-purple-200 p-4 rounded-2xl bg-purple-50/40 flex flex-col justify-between space-y-3 shadow-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                        <Mic size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">Voice Summary</h4>
+                        <p className="text-[10px] font-extrabold text-purple-700 uppercase tracking-wider">Audio summary ({voiceSummaryFiles.length} File{voiceSummaryFiles.length > 1 ? 's' : ''})</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-black text-purple-800 bg-purple-100 border border-purple-300 px-2.5 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                      <CheckCircle size={12} className="text-purple-600" /> Attached
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {voiceSummaryFiles.map((doc, idx) => (
+                      <a
+                        key={idx}
+                        href={doc.uploadFile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-2.5 bg-white border border-purple-200 rounded-xl text-xs font-black text-brand-navy hover:bg-purple-50 transition-all group"
+                      >
+                        <span className="truncate max-w-[200px]">{doc.fileName || doc.name || ('Voice Summary ' + (idx + 1))}</span>
+                        <ExternalLink size={14} className="text-slate-400 group-hover:text-brand-navy shrink-0" />
+                      </a>
+                    ))}
+                    {!isCompleted && (
+                      <a
+                        href={voiceSummaryUploadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 p-2 bg-white border border-dashed border-purple-300 text-purple-700 rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-purple-50 transition-colors"
+                      >
+                        <FileUp size={12} /> Add More Summaries
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <a
+                  href={voiceSummaryUploadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="border-2 border-dashed border-slate-300 hover:border-purple-600 p-4 rounded-2xl bg-slate-50 hover:bg-purple-50/60 transition-all flex flex-col justify-between space-y-4 group cursor-pointer shadow-xs hover:shadow-md active:scale-[0.99]"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 group-hover:bg-purple-100 group-hover:text-purple-700 flex items-center justify-center shrink-0 transition-colors">
+                        <Mic size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 group-hover:text-purple-700 transition-colors">
+                          Voice Summary
+                        </h4>
+                        <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Audio summary (1 File)</p>
+                      </div>
+                    </div>
+                    <span className="text-[9px] font-black text-orange-700 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-md shrink-0 uppercase tracking-wider">
+                      Required *
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-brand-navy text-xs font-black uppercase tracking-wider pt-2.5 border-t border-slate-200/80 group-hover:border-purple-200 group-hover:text-purple-700">
+                    <span className="flex items-center gap-1.5 text-[11px]">
+                      <FileUp size={14} /> Click to Upload Summary
+                    </span>
+                    <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
+                </a>
+              )}
             </div>
           </div>
-          {/* SECTION 2: Session Timings */}
-          <div className={'bg-white border-2 border-slate-200/90 rounded-3xl shadow-md p-6 space-y-4 border-t-4 border-t-brand-navy transition-all ' + (!isUnlocked ? 'opacity-40 pointer-events-none' : '')}>
+          {/* SECTION 2: Session Timings & Topic Covered */}
+          <div className={'bg-white border-2 border-slate-200/90 rounded-3xl shadow-md p-6 space-y-5 border-t-4 border-t-brand-navy transition-all ' + (!isUnlocked ? 'opacity-40 pointer-events-none' : '')}>
             <div className="flex items-center justify-between border-b-2 border-slate-100 pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-md shrink-0">
                   <Clock size={18} strokeWidth={2.5} />
                 </div>
-                <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">2. SESSION TIMINGS</h3>
+                <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">2. SESSION TIMINGS & TOPIC COVERED</h3>
               </div>
               {!isUnlocked && (
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
@@ -521,6 +736,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
               )}
             </div>
 
+            {/* Session Timings Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-700 uppercase tracking-widest ml-1">
@@ -570,25 +786,9 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* SECTION 3: Topic Covered */}
-          <div className={'bg-white border-2 border-slate-200/90 rounded-3xl shadow-md p-6 space-y-4 border-t-4 border-t-brand-navy transition-all ' + (!isUnlocked ? 'opacity-40 pointer-events-none' : '')}>
-            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-md shrink-0">
-                  <BookOpen size={18} strokeWidth={2.5} />
-                </div>
-                <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">3. TOPIC COVERED</h3>
-              </div>
-              {!isUnlocked && (
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                  <Lock size={12} /> Locked
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
+            {/* Topic Covered */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-100">
               <label className="text-[10px] font-black text-slate-700 uppercase tracking-widest ml-1">
                 CLASS CURRICULUM & SUMMARY <span className="text-red-600">*</span>
               </label>
@@ -602,6 +802,163 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
               />
             </div>
           </div>
+
+          {/* SECTION 3: Session Checklist */}
+          {(() => {
+            const availableModes: string[] = Array.from(new Set(checklistTemplates.map(t => t.mode).filter(Boolean)));
+            const displayModes: string[] = availableModes.length > 0 ? availableModes : ['Teaching', 'Exam'];
+            const activeModeItems = checklistTemplates.filter(
+              t => t.mode.toLowerCase() === selectedMode.toLowerCase()
+            );
+
+            return (
+              <div className={'bg-white border-2 border-slate-200/90 rounded-3xl shadow-md p-6 space-y-5 border-t-4 border-t-brand-navy transition-all ' + (!isUnlocked ? 'opacity-40 pointer-events-none' : '')}>
+                {/* Section Header */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-md shrink-0">
+                      <ListChecks size={18} strokeWidth={2.5} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-900">
+                          3. SESSION CHECKLIST
+                        </h3>
+                        <span className="text-[10px] font-black text-brand-navy bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider">
+                          Role: Teacher
+                        </span>
+                      </div>
+                      <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mt-0.5">
+                        Verify classroom preparedness & compliance checklist for this session
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Mode Selector Tabs */}
+                  <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border-2 border-slate-200 self-stretch sm:self-auto overflow-x-auto">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-2 shrink-0">
+                      MODE:
+                    </span>
+                    {displayModes.map((mode) => {
+                      const isActive = selectedMode.toLowerCase() === mode.toLowerCase();
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setSelectedMode(mode)}
+                          disabled={isCompleted || !isUnlocked}
+                          className={`px-3 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all shrink-0 active:scale-95 ${
+                            isActive
+                              ? 'bg-brand-navy text-white shadow-sm'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
+                          }`}
+                        >
+                          {mode}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Checklist Content */}
+                {isLoadingChecklist ? (
+                  <div className="py-8 bg-slate-50 border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-500 shadow-inner">
+                    <Loader2 size={24} className="animate-spin text-brand-navy" />
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-600">
+                      Loading session checklist...
+                    </p>
+                  </div>
+                ) : activeModeItems.length === 0 ? (
+                  <div className="py-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-wider">
+                      No checklist items configured for {selectedMode} mode.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {activeModeItems.map((tmpl) => {
+                      const currentVal = checklistAnswers[tmpl.checkId];
+                      const isChecked = Boolean(currentVal);
+
+                      if (tmpl.isCheckbox) {
+                        return (
+                          <div
+                            key={tmpl.checkId}
+                            onClick={() => toggleChecklistItem(tmpl.checkId)}
+                            className={`p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 select-none ${
+                              isChecked
+                                ? 'bg-emerald-50/70 border-emerald-300 shadow-xs'
+                                : 'bg-slate-50 hover:bg-white border-slate-200 hover:border-slate-300'
+                            } ${isCompleted || !isUnlocked ? 'cursor-default' : 'cursor-pointer active:scale-[0.99]'}`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div
+                                className={`w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all shrink-0 ${
+                                  isChecked
+                                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
+                                    : 'border-slate-300 bg-white'
+                                }`}
+                              >
+                                {isChecked && <Check size={14} strokeWidth={3} />}
+                              </div>
+                              <div className="min-w-0">
+                                <span className={`text-xs font-black block truncate ${
+                                  isChecked ? 'text-emerald-950' : 'text-slate-800'
+                                }`}>
+                                  {tmpl.items}
+                                </span>
+                                <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
+                                  {tmpl.mode}
+                                </span>
+                              </div>
+                            </div>
+                            <span
+                              className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border shrink-0 ${
+                                isChecked
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                  : 'bg-slate-100 text-slate-500 border-slate-200'
+                              }`}
+                            >
+                              {isChecked ? 'DONE' : 'PENDING'}
+                            </span>
+                          </div>
+                        );
+                      }
+
+                      // Dropdown options
+                      return (
+                        <div
+                          key={tmpl.checkId}
+                          className="p-3.5 rounded-2xl border-2 border-slate-200 bg-slate-50 flex flex-col justify-between gap-2.5 shadow-xs"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-black text-slate-800">
+                              {tmpl.items}
+                            </span>
+                            <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
+                              {tmpl.mode}
+                            </span>
+                          </div>
+                          <select
+                            value={String(currentVal || tmpl.options[0] || '')}
+                            onChange={(e) => setChecklistDropdown(tmpl.checkId, e.target.value)}
+                            disabled={isCompleted || !isUnlocked}
+                            className="w-full bg-white border-2 border-slate-300 px-3 py-2 rounded-xl text-xs font-black text-slate-800 outline-none focus:border-brand-navy focus:ring-1 focus:ring-brand-navy transition-all disabled:opacity-60"
+                          >
+                            {tmpl.options.map((opt, oIdx) => (
+                              <option key={oIdx} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* SECTION 4: Student Attendance & Feedback */}
           <div className={'bg-white border-2 border-slate-200/90 rounded-3xl shadow-md p-6 space-y-6 border-t-4 border-t-brand-navy transition-all ' + (!isUnlocked ? 'opacity-40 pointer-events-none' : '')}>

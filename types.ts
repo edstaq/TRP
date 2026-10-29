@@ -18,8 +18,9 @@ export interface SessionFile {
   email: string;
   sessionId: string;
   fileName: string;
+  name?: string;
   uploadFile: string; // Google Drive link
-  type: 'Learn Docs' | 'Session Proof';
+  type: 'Learn Docs' | 'Session Proof' | string;
 }
 
 export interface ApiSessionFile {
@@ -28,7 +29,7 @@ export interface ApiSessionFile {
   "Session ID": string;
   "File Name": string;
   "Upload File": string;
-  "Type": "Learn Docs" | "Session Proof";
+  "Type": "Learn Docs" | "Session Proof" | string;
 }
 
 export interface SubjectCatalogItem {
@@ -68,6 +69,42 @@ export interface Session {
 export interface Availability {
   day: string;
   slots: { id?: string; start: string; end: string }[];
+}
+
+export interface ChecklistTemplateItem {
+  checkId: string;
+  role: string;
+  mode: string;
+  items: string;
+  values: string;
+  isCheckbox: boolean;
+  options: string[];
+}
+
+export interface ApiChecklistTemplate {
+  "Check id": string;
+  "Role": string;
+  "Mode": string;
+  "Items": string;
+  "Values": string;
+}
+
+export interface ChecklistMasterRecord {
+  "Check id": string;
+  "Role": string;
+  "Mode": string;
+  "Items": string;
+  "Values": string;
+  "Teacher ID": string;
+  "Session ID": string;
+  "Item ID": string;
+}
+
+export interface ChecklistStateItem {
+  checkId: string;
+  mode: string;
+  items: string;
+  value: string; // "TRUE" / "FALSE" or selected option
 }
 
 export interface TeacherProfile {
@@ -154,6 +191,3 @@ export interface ApiStudent {
   "Student Name": string;
   "Dashboard"?: string;
 }
-
-
-

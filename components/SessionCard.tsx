@@ -58,8 +58,13 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
 
   // Count files by type
   const files = session.files || [];
-  const learnDocsCount = files.filter(f => f.type === 'Learn Docs').length;
-  const sessionProofsCount = files.filter(f => f.type === 'Session Proof').length;
+  const isVoiceSummary = (f: any) => {
+    const fileName = (f.fileName || f.name || '').toLowerCase();
+    return fileName.includes('voice summary') || fileName.includes('voicesummary') || fileName.includes('voice') || fileName.includes('audio');
+  };
+  const voiceSummaryCount = files.filter(isVoiceSummary).length;
+  const learnDocsCount = files.filter(f => !isVoiceSummary(f) && (f.type === 'Learn Docs' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('material') || (f.fileName || f.name).toLowerCase().includes('doc'))))).length;
+  const sessionProofsCount = files.filter(f => !isVoiceSummary(f) && (f.type === 'Session Proof' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('proof') || (f.fileName || f.name).toLowerCase().includes('screenshot'))))).length;
 
   return (
     <div className={`group relative bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-6 transition-all duration-500 shadow-sm hover:shadow-xl ${isCompleted ? 'grayscale-[0.4] opacity-95' : ''}`}>
@@ -156,7 +161,7 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
       {/* Bottom Action Bar with File Counts */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         {/* File Count Badges */}
-        {(learnDocsCount > 0 || sessionProofsCount > 0) && (
+        {(learnDocsCount > 0 || sessionProofsCount > 0 || voiceSummaryCount > 0) && (
           <div className="flex items-center gap-2">
             {learnDocsCount > 0 && (
               <div className="h-10 px-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-1.5">
@@ -168,6 +173,12 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
             {sessionProofsCount > 0 && (
               <div className="h-10 px-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
                 <span className="text-[9px] font-black text-emerald-700 uppercase tracking-wider">Proof</span>
+              </div>
+            )}
+
+            {voiceSummaryCount > 0 && (
+              <div className="h-10 px-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center">
+                <span className="text-[9px] font-black text-purple-700 uppercase tracking-wider">Voice</span>
               </div>
             )}
           </div>

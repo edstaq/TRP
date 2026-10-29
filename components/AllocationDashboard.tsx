@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { SUBJECT_CATALOG } from '../data/subjects';
-import { Search, ExternalLink, Calendar, Clock, Filter, RefreshCw, Loader2, LayoutDashboard } from 'lucide-react';
+import { Search, ExternalLink, Calendar, Clock, Filter, RefreshCw, Loader2, LayoutDashboard, Plus } from 'lucide-react';
 import { Allocation } from '../types';
 import { allocationService } from '../services/allocationService';
 import { studentService } from '../services/studentService';
 
 interface AllocationDashboardProps {
   teacherId: string;
+  onAddSession?: (allocation: Allocation) => void;
 }
 
-const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) => {
+const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId, onAddSession }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -196,10 +197,10 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                   <table className="w-full min-w-[900px] text-left border-collapse table-fixed">
                     <thead>
                       <tr className="bg-slate-100 border-b-2 border-slate-200">
-                        <th className="w-[32%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">ID / CLASS / STUDENT</th>
-                        <th className="w-[28%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">SUBJECT / LINK</th>
-                        <th className="w-[28%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">SCHEDULE / DAYS</th>
-                        <th className="w-[12%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest text-center">STATUS</th>
+                        <th className="w-[30%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">ID / CLASS / STUDENT</th>
+                        <th className="w-[26%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">SUBJECT / LINK</th>
+                        <th className="w-[26%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">SCHEDULE / DAYS</th>
+                        <th className="w-[18%] px-5 py-4 text-[10px] font-black text-slate-700 uppercase tracking-widest text-center">STATUS</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y-2 divide-slate-100">
@@ -288,13 +289,25 @@ const AllocationDashboard: React.FC<AllocationDashboardProps> = ({ teacherId }) 
                               </div>
                             </td>
                             <td className="px-5 py-4 text-center align-middle">
-                              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border-2 ${status === 'Active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                                status === 'Hold' ? 'bg-amber-50 text-amber-800 border-amber-300' :
-                                  status === 'Closed' ? 'bg-slate-200 text-slate-700 border-slate-300' :
-                                    'bg-brand-navy/10 text-brand-navy border-brand-navy/20'
-                                }`}>
-                                {status.toUpperCase()}
-                              </span>
+                              <div className="flex flex-col items-center justify-center gap-2">
+                                <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border-2 ${status === 'Active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                                  status === 'Hold' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                                    status === 'Closed' ? 'bg-slate-200 text-slate-700 border-slate-300' :
+                                      'bg-brand-navy/10 text-brand-navy border-brand-navy/20'
+                                  }`}>
+                                  {status.toUpperCase()}
+                                </span>
+                                {status === 'Active' && onAddSession && (
+                                  <button
+                                    onClick={() => onAddSession(alloc)}
+                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-white hover:bg-brand-navy text-brand-navy hover:text-white border-2 border-brand-navy/20 hover:border-brand-navy text-[10px] font-black uppercase tracking-wider transition-all shadow-xs hover:shadow-sm active:scale-95 whitespace-nowrap group/add"
+                                    title="Schedule session under this allocation"
+                                  >
+                                    <Plus size={11} strokeWidth={2.5} className="text-brand-navy group-hover/add:text-white transition-colors" />
+                                    <span>Add Session</span>
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );

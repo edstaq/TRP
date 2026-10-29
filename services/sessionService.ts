@@ -2,6 +2,7 @@
 import { APP_CONFIG } from '../config';
 import { Session, SessionStatus, ApiSession, ApiResponse } from '../types';
 import { studentService } from './studentService';
+import { subjectService } from './subjectService';
 
 const API_URL = APP_CONFIG.API_ENDPOINTS.SESSION;
 
@@ -179,6 +180,7 @@ export const sessionService = {
                             email: file["Email address"],
                             sessionId: file["Session ID"],
                             fileName: file["File Name"],
+                            name: file["File Name"],
                             uploadFile: file["Upload File"],
                             type: file["Type"]
                         })),
@@ -218,6 +220,78 @@ export const sessionService = {
         } catch (error) {
             console.error('Error updating session:', error);
             return false;
+        }
+    },
+
+    /**
+     * Create a new session under an allocation
+     */
+    async createSession(sessionData: {
+        teacherId: string;
+        assignId: string;
+        classRoomId: string;
+        subjectId: string;
+        subjectName?: string;
+        subjectLabel?: string;
+        studentIds: string[];
+        date: string; // YYYY-MM-DD
+        startTime: string; // HH:mm (24hr)
+        endTime: string; // HH:mm (24hr)
+        meetLink?: string;
+        sessionsPerDay?: number;
+    }): Promise<{ success: boolean; sessionId?: string; error?: string }> {
+        try {
+            // Resolve subject name from Subject Database based on subjectId
+            let resolvedSubjectName = (sessionData.subjectName || '').trim();
+            if (!resolvedSubjectName && sessionData.subjectId) {
+                resolvedSubjectName = await subjectService.getSubjectNameById(sessionData.subjectId);
+            }
+
+            // Generate 8-character unique alphanumeric/hex string (e.g. ff1f9619)
+            const randomBytes = new Uint8Array(4);
+            if (typeof window !== 'undefined' && window.crypto) {
+                window.crypto.getRandomValues(randomBytes);
+            } else {
+                for (let i = 0; i < 4; i++) randomBytes[i] = Math.floor(Math.random() * 256);
+            }
+            const sessionId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
+
+            // Format Session Temp Id: ${Teacher Assign ID}_${YYYY-MM-DD}_${HH:mm} (e.g. TAS162_2026-10-28_20:00)
+            const sessionTempId = `${sessionData.assignId}_${sessionData.date}_${sessionData.startTime}`;
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8',
+                },
+                body: JSON.stringify({
+                    action: 'createSession',
+                    sessionId,
+                    sessionTempId,
+                    "Subject name": resolvedSubjectName,
+                    "Subject Name": resolvedSubjectName,
+                    subjectName: resolvedSubjectName,
+                    ...sessionData
+                })
+            });
+
+            const result: ApiResponse<any> = await response.json();
+            if (result.success) {
+                return {
+                    success: true,
+                    sessionId: result.data?.sessionId
+                };
+            }
+            return {
+                success: false,
+                error: result.message || 'Failed to create session'
+            };
+        } catch (error: any) {
+            console.error('Error creating session:', error);
+            return {
+                success: false,
+                error: error.message || 'Network error'
+            };
         }
     }
 };

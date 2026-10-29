@@ -10,9 +10,10 @@ import SubjectSelectorModal from './components/SubjectSelectorModal';
 import { sessionService } from './services/sessionService';
 import { Session, SessionStatus, TeacherProfile, Allocation } from './types';
 import { allocationService } from './services/allocationService';
-import { LogIn, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, Clock, CheckCircle2 } from 'lucide-react';
+import { LogIn, Sparkles, ChevronRight, Calendar, ArrowUpRight, GraduationCap, Clock, CheckCircle2, Plus } from 'lucide-react';
 import { APP_CONFIG } from './config';
 import LoadingPopup from './components/LoadingPopup';
+import { AddSessionModal } from './components/AddSessionModal';
 
 
 const App: React.FC = () => {
@@ -34,6 +35,8 @@ const App: React.FC = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
   const [managingSession, setManagingSession] = useState<Session | null>(null);
+  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
+  const [selectedAllocationForAdd, setSelectedAllocationForAdd] = useState<Allocation | null>(null);
 
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile>(() => {
     const saved = localStorage.getItem('teacherProfile');
@@ -198,6 +201,23 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSessionCreated = async () => {
+    if (teacherProfile.id) {
+      setIsSessionsLoading(true);
+      try {
+        const sessionData = await sessionService.fetchByTeacherId(teacherProfile.id);
+        const sortedSessions = sessionData.sort((a, b) =>
+          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        );
+        setSessions(sortedSessions);
+      } catch (err) {
+        console.error('Failed to reload sessions after creation:', err);
+      } finally {
+        setIsSessionsLoading(false);
+      }
+    }
+  };
+
   const handleUpdateProfileSubjects = async (ids: string[]) => {
     setTeacherProfile(prev => ({ ...prev, subjects: ids }));
     setIsCatalogView(false);
@@ -332,6 +352,10 @@ const App: React.FC = () => {
           session={managingSession}
           teacherId={teacherProfile.id}
           onUpdate={handleSessionUpdate}
+          onUpdateFiles={(files) => {
+            setSessions(prev => prev.map(s => s.sessionId === managingSession.sessionId ? { ...s, files } : s));
+            setManagingSession(prev => prev ? { ...prev, files } : null);
+          }}
           onBack={() => setManagingSession(null)}
           isCompleted={managingSession.status === SessionStatus.COMPLETED}
         />
@@ -483,8 +507,25 @@ const App: React.FC = () => {
         return (
           <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-500">
             <div className="px-1">
-              <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Academic Queue</h2>
-              <p className="text-slate-600 font-extrabold text-base mt-1">Active session management and real-time attendance logs</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Academic Queue</h2>
+                <p className="text-slate-600 font-extrabold text-base mt-1">Active session management and real-time attendance logs</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedAllocationForAdd(null);
+                  setIsAddSessionOpen(true);
+                }}
+                className="self-start sm:self-auto flex items-center gap-2 px-5 py-3 rounded-2xl bg-brand-navy hover:bg-slate-900 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 shrink-0"
+              >
+                <Plus size={16} strokeWidth={3} />
+                <span>Add Session</span>
+              </button>
+            </div>
+
+
             </div>
             {upcomingList.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -525,7 +566,15 @@ const App: React.FC = () => {
         );
 
       case 'allocation':
-        return <AllocationDashboard teacherId={teacherProfile.id} />;
+        return (
+          <AllocationDashboard
+            teacherId={teacherProfile.id}
+            onAddSession={(alloc) => {
+              setSelectedAllocationForAdd(alloc);
+              setIsAddSessionOpen(true);
+            }}
+          />
+        );
 
       case 'availability':
         return (
@@ -553,6 +602,14 @@ const App: React.FC = () => {
         {renderContent()}
       </div>
       {isSessionsLoading && <LoadingPopup message="Retrieving Sessions..." />}
+      <AddSessionModal
+        isOpen={isAddSessionOpen}
+        onClose={() => setIsAddSessionOpen(false)}
+        allocations={allocations}
+        preSelectedAllocation={selectedAllocationForAdd}
+        teacherId={teacherProfile.id}
+        onSessionCreated={handleSessionCreated}
+      />
     </Layout>
   );
 };

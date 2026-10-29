@@ -3,16 +3,20 @@
  * Application Configuration
  * You can easily edit API endpoints and other settings here.
  */
+const UNIFIED_API_URL = 'https://script.google.com/macros/s/AKfycbwYjHfqxcj_IEITt_PNUgQHaFiCzmVWie5mGXBnCZKr3IJAVvc9PLClPhrhqzumr5OMSQ/exec';
+
 export const APP_CONFIG = {
-    // Google Apps Script API endpoints
+    // Unified Google Apps Script API endpoint
     API_ENDPOINTS: {
-        TEACHER: 'https://script.google.com/macros/s/AKfycbx7NxYRzKivFWZG-0eu2LyKF_XqiXIKlBCa6S4y-M8nAXNAM5N7Omr6csYrhHrAguTx/exec',
-        SUBJECT: 'https://script.google.com/macros/s/AKfycby-zYMWd2uxaSvDwHp336uoz2w0r4UfwD69_Gape9FXOzg4B__L8Jc-fXxq59Y9UQdrRQ/exec',
-        AVAILABILITY: 'https://script.google.com/macros/s/AKfycbxmTzvJIW1GIwwQij9SS6gUr3qpDBt5w0K81TllvfEG569wTSf2DbS07bJRweiHZAAQ/exec',
-        ALLOCATION: 'https://script.google.com/macros/s/AKfycbwuzCTP0cK91jWUqHhvypJQhbw-X1xFvkCQIWmucsVcJaU3GccGIY8VEV-J02-beYx1qw/exec',
-        SESSION: 'https://script.google.com/macros/s/AKfycbxphDk4brk1ngyFl4W6nWDwI3-v870D2iPZ2IKzYWIXPz0noMsFDhKQbnWSs9m4wUHB/exec',
-        STUDENT_LOG: 'https://script.google.com/macros/s/AKfycbw0OBau3M7WsU14zGTiKpsTfbJgajnGVyZRvtb-CcFDU8uJZPPwu3JSPgMVlMgDs2gW/exec',
-        STUDENT: 'https://script.google.com/macros/s/AKfycbwno4xusBgka6B6-8vvqdV79K-xtEG1MUCQ-B-d861SWwkxiWvVuXRIeI33e89e2QoUCQ/exec',
+        UNIFIED: UNIFIED_API_URL,
+        TEACHER: UNIFIED_API_URL,
+        SUBJECT: UNIFIED_API_URL,
+        AVAILABILITY: UNIFIED_API_URL,
+        ALLOCATION: UNIFIED_API_URL,
+        SESSION: UNIFIED_API_URL,
+        STUDENT_LOG: UNIFIED_API_URL,
+        STUDENT: UNIFIED_API_URL,
+        CHECKLIST: UNIFIED_API_URL,
     },
 
     // Google Form URLs for various requests
