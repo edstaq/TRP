@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Session, Student, SessionStatus, ChecklistTemplateItem } from '../types';
 import {
-  ChevronLeft, Clock, BookOpen, CheckCircle, XCircle, Star, FileUp, ExternalLink, Loader2, Lock, Key, Check, RefreshCcw, StickyNote, AlertTriangle, FileText, Mic, ListChecks
+  ChevronLeft, Clock, BookOpen, CheckCircle, XCircle, Star, FileUp, ExternalLink, Loader2, Lock, Key, Check, RefreshCcw, StickyNote, AlertTriangle, FileText, Mic, ListChecks, Layers, ChevronDown
 } from 'lucide-react';
 import { studentLogService } from '../services/studentLogService';
 import { sessionService } from '../services/sessionService';
@@ -38,6 +38,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   const [isRefreshingFiles, setIsRefreshingFiles] = useState(false);
   const [currentFiles, setCurrentFiles] = useState(session.files || []);
   const [checklistTemplates, setChecklistTemplates] = useState<ChecklistTemplateItem[]>([]);
+  const [availableModes, setAvailableModes] = useState<string[]>(['Teaching', 'Exam']);
   const [selectedMode, setSelectedMode] = useState<string>('Teaching');
   const [checklistAnswers, setChecklistAnswers] = useState<Record<string, string | boolean>>({});
   const [isLoadingChecklist, setIsLoadingChecklist] = useState(false);
@@ -71,7 +72,11 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
 
         // Discover unique modes
         const modes: string[] = Array.from(new Set(activeTemplates.map(t => t.mode).filter(Boolean)));
-        let initialMode = modes[0] || 'Teaching';
+        if (!modes.some(m => m.toLowerCase() === 'teaching')) modes.unshift('Teaching');
+        if (!modes.some(m => m.toLowerCase() === 'exam')) modes.push('Exam');
+        setAvailableModes(modes);
+
+        let initialMode = 'Teaching';
 
         const initialAnswers: Record<string, string | boolean> = {};
 
@@ -219,8 +224,11 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   const learnDocs = sessionFiles.filter(f => !isVoiceSummary(f) && !isSessionProof(f) && (f.type === 'Learn Docs' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('material') || (f.fileName || f.name).toLowerCase().includes('doc')))));
   const hasLearnDocs = learnDocs.length >= 1;
 
-  // Key Unlock Condition: User must attach at least 1 Session Proof, at least 1 Learn Doc, AND at least 1 Voice Summary (or session is already completed)
-  const isUnlocked = isCompleted || (hasSessionProof && hasLearnDocs && hasVoiceSummary);
+  // Voice note / Voice summary is REQUIRED only when Mode is 'Teaching' (default). For 'Exam' or other modes, it is OPTIONAL.
+  const isVoiceNoteRequired = selectedMode.trim().toLowerCase() === 'teaching';
+
+  // Key Unlock Condition: User must attach at least 1 Session Proof, at least 1 Learn Doc, AND (if Teaching mode) at least 1 Voice Summary
+  const isUnlocked = isCompleted || (hasSessionProof && hasLearnDocs && (!isVoiceNoteRequired || hasVoiceSummary));
 
   const toggleAttendance = (id: string) => {
     if (isCompleted || !isUnlocked) return;
@@ -298,7 +306,11 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     }
 
     if (!isUnlocked) {
-      alert('Please upload Session Proof, at least one Learning Material document, and Voice Summary first, then click Refresh Files to unlock.');
+      const missing = [];
+      if (!hasSessionProof) missing.push('Session Proof');
+      if (!hasLearnDocs) missing.push('at least 1 Learning Material document');
+      if (isVoiceNoteRequired && !hasVoiceSummary) missing.push('Voice Summary');
+      alert(`Please upload ${missing.join(', ')} first, then click Refresh Files to unlock.`);
       return;
     }
 
@@ -451,7 +463,30 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-2.5 self-end sm:self-auto flex-wrap">
+            {/* Session Mode Dropdown (At the very top) */}
+            <div className="flex items-center gap-2 bg-slate-50 border-2 border-slate-300 hover:border-brand-navy px-3 py-1.5 rounded-2xl transition-all shadow-xs group/mode">
+              <label htmlFor="top-session-mode" className="text-[10px] font-black text-slate-600 uppercase tracking-wider whitespace-nowrap flex items-center gap-1 cursor-pointer">
+                <Layers size={13} className="text-brand-navy" /> MODE:
+              </label>
+              <div className="relative flex items-center">
+                <select
+                  id="top-session-mode"
+                  value={selectedMode}
+                  onChange={(e) => setSelectedMode(e.target.value)}
+                  disabled={isCompleted}
+                  className="bg-transparent text-xs font-black text-slate-900 uppercase tracking-wider outline-none cursor-pointer pr-5 disabled:opacity-60 appearance-none"
+                >
+                  {availableModes.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {mode}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="text-slate-500 absolute right-0 pointer-events-none group-hover/mode:text-brand-navy transition-colors" />
+              </div>
+            </div>
+
             {isCompleted ? (
               <span className="inline-flex items-center gap-1.5 text-[10px] font-black bg-blue-100 text-blue-900 border border-blue-300 px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-sm">
                 <CheckCircle size={14} className="text-blue-600" />
@@ -487,7 +522,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                     <span className="text-[10px] font-black text-red-600 bg-red-50 px-2.5 py-0.5 rounded-md border border-red-200 uppercase tracking-wider">Required First</span>
                   </div>
                   <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mt-0.5">
-                    Upload 1 session proof, at least 1 learning material & 1 voice summary to unlock session details and attendance
+                    Upload 1 session proof, at least 1 learning material {isVoiceNoteRequired ? '& 1 voice summary' : `(voice summary optional for ${selectedMode})`} to unlock session details and attendance
                   </p>
                 </div>
               </div>
@@ -702,11 +737,17 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                         <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 group-hover:text-purple-700 transition-colors">
                           Voice Summary
                         </h4>
-                        <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Audio summary (1 File)</p>
+                        <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                          Audio summary {isVoiceNoteRequired ? '(1 File Required)' : `(Optional for ${selectedMode})`}
+                        </p>
                       </div>
                     </div>
-                    <span className="text-[9px] font-black text-orange-700 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-md shrink-0 uppercase tracking-wider">
-                      Required *
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md shrink-0 uppercase tracking-wider ${
+                      isVoiceNoteRequired
+                        ? 'text-orange-700 bg-orange-100 border border-orange-200'
+                        : 'text-slate-600 bg-slate-100 border border-slate-200'
+                    }`}>
+                      {isVoiceNoteRequired ? 'Required *' : 'Optional'}
                     </span>
                   </div>
 
