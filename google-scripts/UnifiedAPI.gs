@@ -488,7 +488,7 @@ function handleReadSessionsByTeacherId(teacherId) {
     if (String(row[teacherCol]).trim() === target) {
       const obj = rowToObj(ctx.headers, row, true);
       const sessId = String(row[sessionCol]).trim();
-      obj["Files"] = fileMap[sessId] || [];
+      obj["Files"] = fileMap[sessId] || fileMap[sessId.toLowerCase()] || fileMap[sessId.toUpperCase()] || [];
       result.push(obj);
     }
   });
@@ -657,13 +657,18 @@ function getFilesGroupedBySession() {
     ctx.rows.forEach(r => {
       const sessId = String(r[sessionCol]).trim();
       if (!sessId) return;
+      const lower = sessId.toLowerCase();
       if (!map[sessId]) map[sessId] = [];
+      if (!map[lower]) map[lower] = [];
 
       const fileObj = {};
       ctx.headers.forEach((h, i) => {
         fileObj[h] = r[i] !== null && r[i] !== undefined ? String(r[i]) : "";
       });
       map[sessId].push(fileObj);
+      if (lower !== sessId) {
+        map[lower].push(fileObj);
+      }
     });
     return map;
   } catch (_) { return {}; }

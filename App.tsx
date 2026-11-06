@@ -377,7 +377,12 @@ const App: React.FC = () => {
           teacherId={teacherProfile.id}
           onUpdate={handleSessionUpdate}
           onUpdateFiles={(files) => {
-            setSessions(prev => prev.map(s => s.sessionId === managingSession.sessionId ? { ...s, files } : s));
+            const targetId = (managingSession.sessionId || managingSession.id || '').trim().toLowerCase();
+            setSessions(prev => prev.map(s => {
+              const matches = (s.sessionId && s.sessionId.trim().toLowerCase() === targetId) ||
+                (s.id && s.id.trim().toLowerCase() === targetId);
+              return matches ? { ...s, files } : s;
+            }));
             setManagingSession(prev => prev ? { ...prev, files } : null);
           }}
           onBack={() => setManagingSession(null)}

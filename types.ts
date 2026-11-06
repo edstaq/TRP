@@ -20,7 +20,7 @@ export interface SessionFile {
   fileName: string;
   name?: string;
   uploadFile: string; // Google Drive link
-  type: 'Learn Docs' | 'Session Proof' | string;
+  type: 'Learn Docs' | 'Session Proof' | 'Voice Summary' | string;
 }
 
 export interface ApiSessionFile {

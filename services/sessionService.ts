@@ -176,13 +176,13 @@ export const sessionService = {
                             review: ''
                         })),
                         files: (item["Files"] || []).map(file => ({
-                            timestamp: file["Timestamp"],
-                            email: file["Email address"],
-                            sessionId: file["Session ID"],
-                            fileName: file["File Name"],
-                            name: file["File Name"],
-                            uploadFile: file["Upload File"],
-                            type: file["Type"]
+                            timestamp: file["Timestamp"] || file["timestamp"] || "",
+                            email: file["Email address"] || file["Email Address"] || file["email"] || "",
+                            sessionId: file["Session ID"] || file["Session Id"] || file["sessionId"] || "",
+                            fileName: file["File Name"] || file["fileName"] || file["name"] || "",
+                            name: file["File Name"] || file["fileName"] || file["name"] || "",
+                            uploadFile: file["Upload File"] || file["uploadFile"] || file["upload_file"] || "",
+                            type: file["Type"] || file["type"] || ""
                         })),
                         meetLink: item["Class link"] || "",
                         topicCovered: item["Topic covered"] || "",

@@ -202,15 +202,50 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     };
   }, [session.sessionId]);
 
+  const normalizeType = (type?: string) => (type || '').trim().toLowerCase();
+
+  // 1. Voice Summary:
+  // When Type is "Voice Summary", it is strictly Voice Summary.
+  // When Type is "Session Proof" or "Learn Docs", it CANNOT be Voice Summary.
+  // Fallback to filename keywords ONLY when Type is empty/unspecified.
   const isVoiceSummary = (f: any) => {
+    const typeStr = normalizeType(f.type);
+    if (typeStr === 'voice summary' || typeStr === 'voicesummary' || typeStr === 'voice') return true;
+    if (typeStr === 'session proof' || typeStr === 'learn docs' || typeStr === 'learning materials' || typeStr === 'learning docs') return false;
+
     const fileName = (f.fileName || f.name || '').toLowerCase();
-    return fileName.includes('voice summary') || fileName.includes('voicesummary') || fileName.includes('voice') || fileName.includes('audio');
+    return fileName.includes('voice summary') ||
+      fileName.includes('voicesummary') ||
+      fileName.includes('voice') ||
+      fileName.includes('audio');
   };
 
+  // 2. Session Proof:
+  // When Type is "Session Proof", it is strictly Session Proof.
+  // When Type is "Voice Summary" or "Learn Docs", it CANNOT be Session Proof.
+  // Fallback to filename keywords ONLY when Type is empty/unspecified.
   const isSessionProof = (f: any) => {
+    const typeStr = normalizeType(f.type);
+    if (typeStr === 'session proof' || typeStr === 'proof') return true;
+    if (typeStr === 'voice summary' || typeStr === 'learn docs' || typeStr === 'learning materials' || typeStr === 'learning docs') return false;
+
     if (isVoiceSummary(f)) return false;
     const fileName = (f.fileName || f.name || '').toLowerCase();
-    return f.type === 'Session Proof' || fileName.includes('proof') || fileName.includes('screenshot');
+    return fileName.includes('proof') || fileName.includes('screenshot');
+  };
+
+  // 3. Learning Materials (Learn Docs):
+  // When Type is "Learn Docs" (or "Learning Materials"), it is strictly Learning Materials.
+  // When Type is "Session Proof" or "Voice Summary", it CANNOT be Learn Docs.
+  // Fallback to filename keywords ONLY when Type is empty/unspecified.
+  const isLearnDoc = (f: any) => {
+    const typeStr = normalizeType(f.type);
+    if (typeStr === 'learn docs' || typeStr === 'learndocs' || typeStr === 'learning materials' || typeStr === 'learning docs' || typeStr === 'learn doc') return true;
+    if (typeStr === 'session proof' || typeStr === 'voice summary') return false;
+
+    if (isVoiceSummary(f) || isSessionProof(f)) return false;
+    const fileName = (f.fileName || f.name || '').toLowerCase();
+    return fileName.includes('material') || fileName.includes('doc');
   };
 
   const sessionFiles = currentFiles;
@@ -221,7 +256,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   const voiceSummaryFile = voiceSummaryFiles[0];
   const hasVoiceSummary = voiceSummaryFiles.length >= 1;
 
-  const learnDocs = sessionFiles.filter(f => !isVoiceSummary(f) && !isSessionProof(f) && (f.type === 'Learn Docs' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('material') || (f.fileName || f.name).toLowerCase().includes('doc')))));
+  const learnDocs = sessionFiles.filter(isLearnDoc);
   const hasLearnDocs = learnDocs.length >= 1;
 
   // Voice note / Voice summary is REQUIRED only when Mode is 'Teaching' (default). For 'Exam' or other modes, it is OPTIONAL.
@@ -269,15 +304,38 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   const handleRefreshFiles = async () => {
     setIsRefreshingFiles(true);
     try {
-      const targetTeacherId = teacherId || session.id.split('_')[0];
+      let targetTeacherId = teacherId;
+      if (!targetTeacherId) {
+        try {
+          const saved = localStorage.getItem('teacherProfile');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            targetTeacherId = parsed.id || parsed.teacherId;
+          }
+        } catch (_) { }
+      }
+      if (!targetTeacherId && session.id) {
+        targetTeacherId = session.id.split('_')[0];
+      }
+
       if (targetTeacherId) {
         const fetchedSessions = await sessionService.fetchByTeacherId(targetTeacherId);
-        const updatedSession = fetchedSessions.find(s => s.sessionId === session.sessionId);
+        const currentSessId = (session.sessionId || session.id || '').trim().toLowerCase();
+        const updatedSession = fetchedSessions.find(s =>
+          (s.sessionId && s.sessionId.trim().toLowerCase() === currentSessId) ||
+          (s.id && s.id.trim().toLowerCase() === currentSessId)
+        );
         if (updatedSession) {
           const freshFiles = updatedSession.files || [];
           setCurrentFiles(freshFiles);
           if (onUpdateFiles) {
             onUpdateFiles(freshFiles);
+          }
+          if (onUpdate) {
+            onUpdate({
+              ...session,
+              files: freshFiles
+            });
           }
         }
       }
@@ -297,7 +355,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
 
   const proofUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=Session+Proof&entry.579457268=Screenshot';
   const learnDocsUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=Learn+Docs&entry.579457268=';
-  const voiceSummaryUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=Learn+Docs&entry.579457268=' + encodeURIComponent('Voice Summary');
+  const voiceSummaryUploadUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfuXQXs-skxQtBjNBgswKv3SmidM5D31u0mIEFpXbQzPFu6fA/viewform?usp=pp_url&entry.150359841=' + encodeURIComponent(session.sessionId) + '&entry.47705791=' + encodeURIComponent('Voice Summary') + '&entry.579457268=' + encodeURIComponent('Voice Summary');
 
   const handleSave = async () => {
     if (isCompleted) {

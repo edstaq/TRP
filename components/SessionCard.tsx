@@ -58,13 +58,43 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onManage, showDetail
 
   // Count files by type
   const files = session.files || [];
+  const normalizeType = (type?: string) => (type || '').trim().toLowerCase();
+
   const isVoiceSummary = (f: any) => {
+    const typeStr = normalizeType(f.type);
+    if (typeStr === 'voice summary' || typeStr === 'voicesummary' || typeStr === 'voice') return true;
+    if (typeStr === 'session proof' || typeStr === 'learn docs' || typeStr === 'learning materials' || typeStr === 'learning docs') return false;
+
     const fileName = (f.fileName || f.name || '').toLowerCase();
-    return fileName.includes('voice summary') || fileName.includes('voicesummary') || fileName.includes('voice') || fileName.includes('audio');
+    return fileName.includes('voice summary') ||
+      fileName.includes('voicesummary') ||
+      fileName.includes('voice') ||
+      fileName.includes('audio');
   };
+
+  const isSessionProof = (f: any) => {
+    const typeStr = normalizeType(f.type);
+    if (typeStr === 'session proof' || typeStr === 'proof') return true;
+    if (typeStr === 'voice summary' || typeStr === 'learn docs' || typeStr === 'learning materials' || typeStr === 'learning docs') return false;
+
+    if (isVoiceSummary(f)) return false;
+    const fileName = (f.fileName || f.name || '').toLowerCase();
+    return fileName.includes('proof') || fileName.includes('screenshot');
+  };
+
+  const isLearnDoc = (f: any) => {
+    const typeStr = normalizeType(f.type);
+    if (typeStr === 'learn docs' || typeStr === 'learndocs' || typeStr === 'learning materials' || typeStr === 'learning docs' || typeStr === 'learn doc') return true;
+    if (typeStr === 'session proof' || typeStr === 'voice summary') return false;
+
+    if (isVoiceSummary(f) || isSessionProof(f)) return false;
+    const fileName = (f.fileName || f.name || '').toLowerCase();
+    return fileName.includes('material') || fileName.includes('doc');
+  };
+
   const voiceSummaryCount = files.filter(isVoiceSummary).length;
-  const learnDocsCount = files.filter(f => !isVoiceSummary(f) && (f.type === 'Learn Docs' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('material') || (f.fileName || f.name).toLowerCase().includes('doc'))))).length;
-  const sessionProofsCount = files.filter(f => !isVoiceSummary(f) && (f.type === 'Session Proof' || ((f.fileName || f.name) && ((f.fileName || f.name).toLowerCase().includes('proof') || (f.fileName || f.name).toLowerCase().includes('screenshot'))))).length;
+  const learnDocsCount = files.filter(isLearnDoc).length;
+  const sessionProofsCount = files.filter(isSessionProof).length;
 
   return (
     <div className={`group relative bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-6 transition-all duration-500 shadow-sm hover:shadow-xl ${isCompleted ? 'grayscale-[0.4] opacity-95' : ''}`}>
