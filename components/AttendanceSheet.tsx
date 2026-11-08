@@ -331,12 +331,6 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
           if (onUpdateFiles) {
             onUpdateFiles(freshFiles);
           }
-          if (onUpdate) {
-            onUpdate({
-              ...session,
-              files: freshFiles
-            });
-          }
         }
       }
     } catch (error) {
